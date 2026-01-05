@@ -1,0 +1,20 @@
+# Environment variables
+.env
+
+# Google credentials
+credentials.json
+
+# Django
+db.sqlite3
+media/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+
+# Virtual environments
+env/
+venv/

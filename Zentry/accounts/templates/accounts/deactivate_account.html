@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Deactivate Account - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .deactivate-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .deactivate-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--dark-3);
+        text-align: center;
+    }
+    
+    .deactivate-header {
+        margin-bottom: 2rem;
+    }
+    
+    .deactivate-header h1 {
+        font-size: 2rem;
+        color: var(--accent);
+        margin-bottom: 1rem;
+    }
+    
+    .deactivate-header p {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+    }
+    
+    .deactivate-icon {
+        font-size: 3rem;
+        color: var(--accent);
+        margin-bottom: 1.5rem;
+    }
+    
+    .deactivate-form {
+        text-align: left;
+    }
+    
+    .deactivate-warning {
+        background-color: rgba(245, 158, 11, 0.1);
+        border: 1px solid var(--accent);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .deactivate-warning h3 {
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .deactivate-warning ul {
+        margin: 0.5rem 0 0 1.5rem;
+        color: var(--light);
+        opacity: 0.8;
+    }
+    
+    .deactivate-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+        .deactivate-actions {
+            flex-direction: column;
+        }
+        
+        .deactivate-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="deactivate-container">
+    <div class="deactivate-card">
+        <div class="deactivate-header">
+            <div class="deactivate-icon">
+                <i class="fas fa-user-slash"></i>
+            </div>
+            <h1>Deactivate Your Account</h1>
+            <p>We're sorry to see you go. Your account will be temporarily disabled and can be reactivated anytime by logging back in.</p>
+        </div>
+        
+        <div class="deactivate-warning">
+            <h3><i class="fas fa-exclamation-triangle"></i> Important Notice</h3>
+            <p>When you deactivate your account:</p>
+            <ul>
+                <li>Your profile will be hidden from other users</li>
+                <li>Your tasks and visions will be preserved</li>
+                <li>You can reactivate by simply logging in again</li>
+                <li>Your friends will remain connected</li>
+            </ul>
+        </div>
+        
+        <form method="post" class="deactivate-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="id_password">Confirm your password to deactivate:</label>
+                <input type="password" id="id_password" name="password" class="form-control" required>
+                {% if form.password.errors %}
+                    <div class="error">{{ form.password.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="deactivate-actions">
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-user-slash"></i> Deactivate Account
+                </button>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

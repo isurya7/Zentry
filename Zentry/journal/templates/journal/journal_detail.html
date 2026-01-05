@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block journal_content %}
+<div class="journal-detail">
+    <!-- Back Button -->
+    <div class="back-nav mb-6">
+        <a href="{% url 'journal:journal_list' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Journal
+        </a>
+    </div>
+
+    <!-- Entry Header -->
+    <div class="entry-header">
+        {% if entry.cover_image %}
+        <div class="cover-image">
+            <img src="{{ entry.cover_image.url }}" alt="{{ entry.title }}">
+        </div>
+        {% endif %}
+        
+        <div class="entry-meta">
+            <h1 class="entry-title">{{ entry.title }}</h1>
+            <div class="meta-info">
+                <span class="date">
+                    <i class="fas fa-calendar"></i> {{ entry.date }}
+                </span>
+                {% if entry.mood %}
+                <span class="mood {{ entry.mood }}">
+                    <i class="fas fa-smile"></i> {{ entry.get_mood_display }}
+                </span>
+                {% endif %}
+                {% if entry.is_public %}
+                <span class="public-badge">
+                    <i class="fas fa-globe"></i> Public
+                </span>
+                {% else %}
+                <span class="private-badge">
+                    <i class="fas fa-lock"></i> Private
+                </span>
+                {% endif %}
+            </div>
+            
+            {% if entry.tags %}
+            <div class="entry-tags">
+                {% for tag in entry.get_tags_list %}
+                <a href="{% url 'journal:journal_by_tag' tag=tag %}" class="tag">{{ tag }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Entry Content -->
+    <div class="entry-content">
+        <div class="content-card">
+            <div class="content-body">
+                {{ entry.content|linebreaks }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Entry Actions -->
+    {% if entry.user == request.user %}
+    <div class="entry-actions">
+        <div class="actions-card">
+            <h4>Manage Entry</h4>
+            <div class="action-buttons">
+                <a href="{% url 'journal:edit_journal' entry.id %}" class="btn btn-outline">
+                    <i class="fas fa-edit"></i> Edit Entry
+                </a>
+                <a href="{% url 'journal:delete_journal' entry.id %}" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Delete Entry
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .back-nav {
+        display: flex;
+        align-items: center;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 0.5rem;
+        color: var(--light);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        background: var(--dark-3);
+        border-color: var(--primary-light);
+        color: var(--primary-light);
+    }
+
+    .entry-header {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .cover-image {
+        height: 300px;
+        overflow: hidden;
+    }
+
+    .cover-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .entry-meta {
+        padding: 2rem;
+    }
+
+    .entry-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+        color: var(--light);
+        line-height: 1.2;
+    }
+
+    .meta-info {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-info span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: var(--dark-3);
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--light);
+    }
+
+    .public-badge {
+        background: rgba(16, 185, 129, 0.2) !important;
+        color: var(--success) !important;
+    }
+
+    .private-badge {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: var(--error) !important;
+    }
+
+    .entry-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .entry-content {
+        margin-bottom: 2rem;
+    }
+
+    .content-card {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        padding: 2rem;
+    }
+
+    .content-body {
+        line-height: 1.7;
+        font-size: 1.1rem;
+        color: var(--light);
+    }
+
+    .content-body p {
+        margin-bottom: 1.5rem;
+    }
+
+    .entry-actions {
+        margin-bottom: 2rem;
+    }
+
+    .actions-card {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        padding: 1.5rem;
+    }
+
+    .actions-card h4 {
+        margin: 0 0 1rem 0;
+        color: var(--light);
+        font-size: 1.1rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-danger {
+        background: var(--error);
+        color: white;
+        border: none;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+    }
+
+    .mb-6 { margin-bottom: 2rem; }
+
+    @media (max-width: 768px) {
+        .entry-title {
+            font-size: 2rem;
+        }
+        
+        .meta-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}

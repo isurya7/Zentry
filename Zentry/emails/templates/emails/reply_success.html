@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reply Sent - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .success-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        text-align: center;
+    }
+    
+    .success-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 3rem 2rem;
+        border: 1px solid var(--success);
+        text-align: center;
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+        color: var(--success);
+        margin-bottom: 1.5rem;
+        animation: bounce 1s ease;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+        40% {transform: translateY(-20px);}
+        60% {transform: translateY(-10px);}
+    }
+    
+    .success-card h1 {
+        font-size: 2.2rem;
+        color: var(--success);
+        margin-bottom: 1rem;
+    }
+    
+    .success-card p {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+    
+    .success-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .whats-next {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--dark-3);
+    }
+    
+    .whats-next h3 {
+        color: var(--primary-light);
+        margin-bottom: 1rem;
+    }
+    
+    .next-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .next-step {
+        background-color: var(--dark-3);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .next-step:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary-light);
+    }
+    
+    .next-step i {
+        font-size: 1.5rem;
+        color: var(--primary-light);
+        margin-bottom: 0.5rem;
+    }
+    
+    .next-step p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+        .success-actions {
+            flex-direction: column;
+        }
+        
+        .next-steps {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="success-container">
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h1>Reply Sent Successfully!</h1>
+        <p>Your message has been delivered to the recipient. They should receive it shortly.</p>
+        
+        <div class="success-actions">
+            <a href="{% url 'emails:inbox' %}" class="btn btn-primary">
+                <i class="fas fa-inbox"></i> Back to Inbox
+            </a>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline">
+                <i class="fas fa-home"></i> Go to Dashboard
+            </a>
+        </div>
+        
+        <div class="whats-next">
+            <h3>What would you like to do next?</h3>
+            
+            <div class="next-steps">
+                <div class="next-step">
+                    <i class="fas fa-tasks"></i>
+                    <p>Create a task from this email</p>
+                </div>
+                <div class="next-step">
+                    <i class="fas fa-user-check"></i>
+                    <p>Mark this conversation as resolved</p>
+                </div>
+                <div class="next-step">
+                    <i class="fas fa-envelope"></i>
+                    <p>Check for new emails</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

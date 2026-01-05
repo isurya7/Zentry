@@ -1,0 +1,815 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<!-- Redirect authenticated users to dashboard -->
+<script>
+    window.location.href = "{% url 'dashboard:dashboard' %}";
+</script>
+{% else %}
+<!-- Show homepage content for non-authenticated users -->
+<section class="hero">
+    <h1>Command Your Productivity Universe</h1>
+    <p>Zentry unifies your digital workflow—emails, tasks, notes, and goals—into one powerful dashboard designed for focus and achievement.</p>
+    
+    <div class="cta-buttons">
+        <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg">Get Started Free</a>
+        <a href="#how-it-works" class="btn btn-outline btn-lg">See How It Works</a>
+    </div>
+    
+    <div class="features">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-envelope"></i></div>
+            <h3>Smart Email Management</h3>
+            <p>AI-powered email prioritization helps you focus on what matters most, not just what's latest.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-tasks"></i></div>
+            <h3>Task Mastery</h3>
+            <p>Gamified task completion with rewards and progress tracking to keep you motivated.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>Vision Board</h3>
+            <p>Visualize and track your goals with a dynamic vision board that evolves with your ambitions.</p>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section id="how-it-works">
+    <h2 class="section-title">How Zentry Works</h2>
+    <p class="section-subtitle">A seamless workflow designed to maximize your productivity without the overwhelm</p>
+    
+    <div class="workflow">
+        <div class="workflow-step">
+            <div class="workflow-content">
+                <div class="workflow-number">1</div>
+                <h3>Connect Your Accounts</h3>
+                <p>Securely authenticate your email and other productivity tools with OAuth 2.0. Zentry never stores your passwords.</p>
+                <ul style="opacity: 0.8; line-height: 1.6; padding-left: 1.5rem;">
+                    <li>Gmail, Outlook, and more</li>
+                    <li>Calendar integration</li>
+                    <li>Cloud storage connections</li>
+                </ul>
+            </div>
+            <div class="workflow-image">
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="Connect Accounts">
+            </div>
+        </div>
+        
+        <div class="workflow-step">
+            <div class="workflow-content">
+                <div class="workflow-number">2</div>
+                <h3>AI-Powered Organization</h3>
+                <p>Our intelligent system categorizes and prioritizes your emails, tasks, and notes based on your work patterns.</p>
+                <ul style="opacity: 0.8; line-height: 1.6; padding-left: 1.5rem;">
+                    <li>Important email detection</li>
+                    <li>Smart task suggestions</li>
+                    <li>Personalized productivity insights</li>
+                </ul>
+            </div>
+            <div class="workflow-image">
+                <img src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="AI Organization">
+            </div>
+        </div>
+        
+        <div class="workflow-step">
+            <div class="workflow-content">
+                <div class="workflow-number">3</div>
+                <h3>Unified Dashboard</h3>
+                <p>Access everything from one centralized command center with intuitive navigation and real-time updates.</p>
+                <ul style="opacity: 0.8; line-height: 1.6; padding-left: 1.5rem;">
+                    <li>Left-side navigation panel</li>
+                    <li>Customizable widgets</li>
+                    <li>Dark/light mode options</li>
+                </ul>
+            </div>
+            <div class="workflow-image">
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="Unified Dashboard">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Dashboard Preview -->
+<section id="dashboard">
+    <h2 class="section-title">Your Productivity Command Center</h2>
+    <p class="section-subtitle">Everything you need in one place, designed for focus and efficiency</p>
+    
+    <div class="dashboard-preview">
+        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="Zentry Dashboard Preview">
+    </div>
+    
+    <div class="features" style="margin-top: 4rem;">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-inbox"></i></div>
+            <h3>Email Management</h3>
+            <p>View important emails, unread messages, and quickly reply without switching contexts.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
+            <h3>Task System</h3>
+            <p>Create individual or group tasks with deadlines, priorities, and progress tracking.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-lightbulb"></i></div>
+            <h3>Vision Board</h3>
+            <p>Visualize your goals with images or text, track progress, and celebrate achievements.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-sticky-note"></i></div>
+            <h3>Notes & Journal</h3>
+            <p>Keep personal or shared notes, and maintain a daily journal with rich text formatting.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section id="testimonials" style="background-color: rgba(30, 41, 59, 0.5); border-radius: 1rem; padding: 4rem 2rem;">
+    <h2 class="section-title">Trusted by Productivity Seekers</h2>
+    <p class="section-subtitle">Join thousands who have transformed their workflow with Zentry</p>
+    
+    <div class="testimonials">
+        <div class="testimonial-card">
+            <div class="testimonial-content">
+                "Zentry has completely changed how I manage my workday. The AI email prioritization alone saves me 2 hours every day!"
+            </div>
+            <div class="testimonial-author">
+                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sarah J." class="testimonial-avatar">
+                <div class="author-info">
+                    <h4>Sarah J.</h4>
+                    <p>Marketing Director</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="testimonial-card">
+            <div class="testimonial-content">
+                "The gamified task system keeps me motivated like nothing else. I've never been this consistent with my daily goals."
+            </div>
+            <div class="testimonial-author">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Michael T." class="testimonial-avatar">
+                <div class="author-info">
+                    <h4>Michael T.</h4>
+                    <p>Software Developer</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="testimonial-card">
+            <div class="testimonial-content">
+                "As a team leader, the collaborative features have been invaluable. We've increased our project completion rate by 40%."
+            </div>
+            <div class="testimonial-author">
+                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Priya K." class="testimonial-avatar">
+                <div class="author-info">
+                    <h4>Priya K.</h4>
+                    <p>Product Manager</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing">
+    <h2 class="section-title">Simple, Transparent Pricing</h2>
+    <p class="section-subtitle">Choose the plan that fits your productivity needs</p>
+    
+    <div class="pricing">
+        <div class="pricing-card">
+            <div class="pricing-header">
+                <div class="pricing-name">Starter</div>
+                <div class="pricing-price">$0</div>
+                <div class="pricing-period">forever</div>
+            </div>
+            <div class="pricing-features">
+                <div class="pricing-feature"><i class="fas fa-check"></i> Basic email management</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Up to 3 connected accounts</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Personal task system</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Basic notes & journal</div>
+            </div>
+            <a href="{% url 'accounts:signup' %}" class="btn btn-outline" style="width: 100%;">Get Started</a>
+        </div>
+        
+        <div class="pricing-card popular">
+            <div class="popular-badge">Most Popular</div>
+            <div class="pricing-header">
+                <div class="pricing-name">Pro</div>
+                <div class="pricing-price">$9</div>
+                <div class="pricing-period">per month</div>
+            </div>
+            <div class="pricing-features">
+                <div class="pricing-feature"><i class="fas fa-check"></i> Advanced AI email sorting</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Unlimited accounts</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Collaborative tasks</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Rich text notes & journal</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Vision board with sharing</div>
+            </div>
+            <a href="{% url 'accounts:signup' %}?plan=pro" class="btn btn-primary" style="width: 100%;">Upgrade Now</a>
+        </div>
+        
+        <div class="pricing-card">
+            <div class="pricing-header">
+                <div class="pricing-name">Team</div>
+                <div class="pricing-price">$29</div>
+                <div class="pricing-period">per month</div>
+            </div>
+            <div class="pricing-features">
+                <div class="pricing-feature"><i class="fas fa-check"></i> Everything in Pro</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Up to 5 team members</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Team productivity analytics</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Priority support</div>
+                <div class="pricing-feature"><i class="fas fa-check"></i> Custom branding</div>
+            </div>
+            <a href="contact.html" class="btn btn-outline" style="width: 100%;">Contact Sales</a>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+    <p class="section-subtitle">Everything you need to know about Zentry</p>
+    
+    <div class="faq">
+        <div class="faq-item">
+            <div class="faq-question">
+                How secure is my data with Zentry?
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+                Zentry uses industry-standard encryption and OAuth 2.0 for all account connections. We never store your passwords and adhere to strict data privacy regulations. Your information remains yours alone.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                Can I use Zentry with multiple email accounts?
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+                Absolutely! The free plan allows up to 3 connected accounts, while Pro and Team plans support unlimited connections. All accounts are managed from your unified dashboard.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                How does the task point system work?
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+                Tasks are assigned points based on complexity and urgency. Completing tasks earns you points that contribute to weekly challenges and achievement badges. Higher tiers unlock special rewards.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                Is there a mobile app available?
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+                Yes! Zentry is available as a progressive web app (PWA) that works on all devices. Native iOS and Android apps are coming in Q4 2023 with additional mobile-specific features.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                Can I cancel my subscription anytime?
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+                Of course. You can cancel your Pro or Team subscription at any time, and you'll retain access until the end of your billing period. No hidden fees or complicated processes.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final CTA -->
+<section style="text-align: center; padding: 6rem 0;">
+    <h2 class="section-title">Ready to Transform Your Productivity?</h2>
+    <p class="section-subtitle">Join thousands of professionals who have taken control of their workflow with Zentry</p>
+    <div class="cta-buttons" style="justify-content: center;">
+        <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg">Get Started Free</a>
+        <a href="demo.html" class="btn btn-outline btn-lg">Schedule a Demo</a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-content">
+        <div class="footer-about">
+            <div class="footer-logo">Zentry<span>.</span></div>
+            <p>Your all-in-one productivity command center designed to help you focus, achieve, and excel.</p>
+            <div class="social-links">
+                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+        
+        <div class="footer-links">
+            <h3>Product</h3>
+            <ul>
+                <li><a href="#">Features</a></li>
+                <li><a href="#">Pricing</a></li>
+                <li><a href="#">Integrations</a></li>
+                <li><a href="#">Roadmap</a></li>
+                <li><a href="#">Changelog</a></li>
+            </ul>
+        </div>
+        
+        <div class="footer-links">
+            <h3>Resources</h3>
+            <ul>
+                <li><a href="#">Documentation</a></li>
+                <li><a href="#">Tutorials</a></li>
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">Community</a></li>
+                <li><a href="#">Support</a></li>
+            </ul>
+        </div>
+        
+        <div class="footer-links">
+            <h3>Company</h3>
+            <ul>
+                <li><a href="#">About Us</a></li>
+                <li><a href="#">Careers</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+                <li><a href="#">Contact Us</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="footer-bottom">
+        <p>&copy; 2023 Zentry. All rights reserved. Designed with ❤️ for productivity seekers worldwide.</p>
+    </div>
+</footer>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<style>
+    /* Additional styles needed for the home page */
+    .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 6rem 0;
+        position: relative;
+    }
+    
+    .hero h1 {
+        font-size: 3.5rem;
+        margin-bottom: 2rem;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -moz-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        -moz-text-fill-color: transparent;
+        color: transparent;
+    }
+    
+    .hero p {
+        font-size: 1.25rem;
+        color: var(--light);
+        opacity: 0.8;
+        max-width: 600px;
+        margin-bottom: 3rem;
+        line-height: 1.6;
+    }
+    
+    .cta-buttons {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 4rem;
+    }
+    
+    .btn-lg {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+    
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 4rem;
+    }
+    
+    .feature-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        transition: transform 0.3s ease;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--primary);
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--primary-light);
+    }
+    
+    .feature-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-card p {
+        color: var(--light);
+        opacity: 0.7;
+        line-height: 1.6;
+    }
+    
+    /* New Sections */
+    section {
+        padding: 6rem 0;
+        position: relative;
+    }
+    
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+        text-align: center;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .section-subtitle {
+        font-size: 1.25rem;
+        color: var(--light);
+        opacity: 0.8;
+        max-width: 700px;
+        margin: 0 auto 4rem;
+        text-align: center;
+        line-height: 1.6;
+    }
+    
+    .workflow {
+        display: flex;
+        flex-direction: column;
+        gap: 4rem;
+    }
+    
+    .workflow-step {
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .workflow-step:nth-child(even) {
+        flex-direction: row-reverse;
+    }
+    
+    .workflow-content {
+        flex: 1;
+    }
+    
+    .workflow-image {
+        flex: 1;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .workflow-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    
+    .workflow-number {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        background-color: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+    
+    .workflow-step h3 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .workflow-step p {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .dashboard-preview {
+        margin-top: 4rem;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--dark-3);
+    }
+    
+    .dashboard-preview img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    
+    .testimonials {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .testimonial-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .testimonial-card:hover {
+        border-color: var(--primary);
+    }
+    
+    .testimonial-content {
+        font-style: italic;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+    
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .testimonial-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .author-info h4 {
+        font-size: 1.1rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .author-info p {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+    
+    .pricing {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .pricing-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--dark-3);
+        transition: transform 0.3s ease;
+    }
+    
+    .pricing-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--primary);
+    }
+    
+    .pricing-card.popular {
+        border-color: var(--primary-light);
+        position: relative;
+    }
+    
+    .popular-badge {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background-color: var(--primary);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .pricing-header {
+        margin-bottom: 2rem;
+    }
+    
+    .pricing-name {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .pricing-price {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .pricing-period {
+        opacity: 0.7;
+        font-size: 0.9rem;
+    }
+    
+    .pricing-features {
+        margin-bottom: 2rem;
+    }
+    
+    .pricing-feature {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .pricing-feature i {
+        color: var(--primary-light);
+    }
+    
+    .faq {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .faq-item {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--dark-3);
+        padding-bottom: 1.5rem;
+    }
+    
+    .faq-question {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .faq-answer {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+    }
+    
+    footer {
+        background-color: var(--dark-2);
+        padding: 4rem 0;
+        border-top: 1px solid var(--dark-3);
+    }
+    
+    .footer-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 3rem;
+        margin-bottom: 3rem;
+    }
+    
+    .footer-logo {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .footer-logo span {
+        color: var(--primary-light);
+    }
+    
+    .footer-about p {
+        opacity: 0.7;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .social-links {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .social-link {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--dark-3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .social-link:hover {
+        background-color: var(--primary);
+        transform: translateY(-3px);
+    }
+    
+    .footer-links h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .footer-links ul {
+        list-style: none;
+    }
+    
+    .footer-links li {
+        margin-bottom: 0.8rem;
+    }
+    
+    .footer-links a {
+        color: var(--light);
+        opacity: 0.7;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .footer-links a:hover {
+        opacity: 1;
+        color: var(--primary-light);
+    }
+    
+    .footer-bottom {
+        text-align: center;
+        padding-top: 2rem;
+        border-top: 1px solid var(--dark-3);
+        opacity: 0.7;
+    }
+    
+    @media (max-width: 768px) {
+        .hero h1 {
+            font-size: 2.5rem;
+        }
+        
+        .hero p {
+            font-size: 1rem;
+        }
+        
+        .cta-buttons {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .workflow-step {
+            flex-direction: column;
+        }
+        
+        .workflow-step:nth-child(even) {
+            flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<script>
+    // FAQ toggle functionality
+    document.querySelectorAll('.faq-question').forEach(question => {
+        question.addEventListener('click', () => {
+            const answer = question.nextElementSibling;
+            const icon = question.querySelector('i');
+            
+            if (answer.style.display === 'block') {
+                answer.style.display = 'none';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                answer.style.display = 'block';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Zentry - Sign In{% endblock %}
+
+{% block auth_content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <div class="logo">Zentry<span>.</span></div>
+        <h1>Welcome Back</h1>
+        <p>Sign in to your productivity command center</p>
+    </div>
+    
+    <div class="auth-card">
+        <!-- Messages -->
+        {% if messages %}
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <div id="error-messages">
+                {% for message in messages %}
+                <div>{{ message }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <form class="auth-form" method="POST" id="signin-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="signin-username">Username</label>
+                <input type="text" id="signin-username" name="username" class="form-control {% if form.errors %}error{% endif %}" 
+                       placeholder="Enter your username" required value="{{ form.username.value|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="signin-password">Password</label>
+                <div class="password-input">
+                    <input type="password" id="signin-password" name="password" class="form-control {% if form.errors %}error{% endif %}" 
+                           placeholder="••••••••" required>
+                    <i class="fas fa-eye password-toggle" id="toggle-signin-password"></i>
+                </div>
+                {% if form.non_field_errors %}
+                <div class="field-error">Invalid username or password</div>
+                {% endif %}
+            </div>
+            
+            <div class="remember-forgot">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="remember-me" name="remember_me">
+                    <label for="remember-me">Remember me</label>
+                </div>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+            
+            <button type="submit" class="auth-btn auth-btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </form>
+    </div>
+    
+    <div class="auth-footer">
+        Don't have an account? <a href="{% url 'accounts:signup' %}">Sign up</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Password toggle functionality for signin page
+        function setupPasswordToggle(toggleId, inputId) {
+            const toggle = document.getElementById(toggleId);
+            const input = document.getElementById(inputId);
+            
+            if (toggle && input) {
+                toggle.addEventListener('click', function() {
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.classList.remove('fa-eye');
+                        this.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        this.classList.remove('fa-eye-slash');
+                        this.classList.add('fa-eye');
+                    }
+                });
+            }
+        }
+        
+        // Initialize password toggle
+        setupPasswordToggle('toggle-signin-password', 'signin-password');
+        
+        // Google OAuth (simulated)
+        const googleSignin = document.getElementById('google-signin');
+        if (googleSignin) {
+            googleSignin.addEventListener('click', () => {
+                alert('Google Sign-In would initiate here');
+            });
+        }
+    });
+</script>
+{% endblock %}

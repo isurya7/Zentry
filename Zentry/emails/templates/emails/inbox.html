@@ -1,0 +1,508 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Inbox - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .inbox-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .inbox-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--dark-3);
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .inbox-header h1 {
+        font-size: 2.2rem;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin: 0;
+    }
+    
+    .inbox-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .api-status {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .api-status.connected {
+        background-color: rgba(16, 185, 129, 0.1);
+        border: 1px solid var(--success);
+        color: var(--success);
+    }
+    
+    .api-status.disconnected {
+        background-color: rgba(245, 158, 11, 0.1);
+        border: 1px solid var(--accent);
+        color: var(--accent);
+    }
+    
+    .api-status.error {
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid var(--error);
+        color: var(--error);
+    }
+    
+    .inbox-stats {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background-color: var(--dark-3);
+        border-radius: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .stat {
+        text-align: center;
+        padding: 0.5rem 1rem;
+        background-color: var(--dark-2);
+        border-radius: 0.3rem;
+        min-width: 100px;
+    }
+    
+    .stat-value {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-light);
+        line-height: 1.2;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.7;
+        margin-top: 0.3rem;
+    }
+    
+    .emails-list {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        border: 1px solid var(--dark-3);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .email-item {
+        display: flex;
+        align-items: center;
+        padding: 1.2rem;
+        border-bottom: 1px solid var(--dark-3);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        gap: 1rem;
+    }
+    
+    .email-item:hover {
+        background-color: var(--dark-3);
+    }
+    
+    .email-item.unread {
+        background-color: rgba(66, 133, 244, 0.1);
+        border-left: 4px solid #4285F4;
+    }
+    
+    .email-item.important {
+        border-left: 4px solid var(--accent);
+    }
+    
+    .email-item.unread .email-sender {
+        font-weight: 700;
+    }
+    
+    .email-item.unread .email-subject {
+        font-weight: 700;
+    }
+    
+    .email-checkbox {
+        margin-right: 0;
+    }
+    
+    .email-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+    }
+    
+    .email-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .email-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+        gap: 1rem;
+    }
+    
+    .email-sender {
+        font-weight: 600;
+        color: var(--light);
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+    }
+    
+    .email-date {
+        color: var(--light);
+        opacity: 0.7;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    .email-subject {
+        font-weight: 600;
+        color: var(--light);
+        margin: 0 0 0.3rem 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .email-preview {
+        color: var(--light);
+        opacity: 0.8;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.9rem;
+    }
+    
+    .email-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+    
+    .email-action-btn {
+        padding: 0.5rem;
+        border-radius: 0.3rem;
+        background: none;
+        border: 1px solid var(--dark-3);
+        color: var(--light);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+    }
+    
+    .email-action-btn:hover {
+        background-color: var(--dark-3);
+        border-color: var(--primary-light);
+    }
+    
+    .importance-badge {
+        background-color: var(--accent);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.2rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1.5rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .pagination-info {
+        color: var(--light);
+        opacity: 0.7;
+        text-align: center;
+    }
+    
+    .empty-inbox {
+        text-align: center;
+        padding: 3rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .empty-inbox i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--primary-light);
+    }
+    
+    .connect-prompt {
+        text-align: center;
+        padding: 3rem;
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .connect-prompt i {
+        font-size: 3rem;
+        color: #EA4335;
+        margin-bottom: 1rem;
+    }
+    
+    .connect-prompt h2 {
+        color: var(--light);
+        margin-bottom: 1rem;
+    }
+    
+    .connect-prompt p {
+        color: var(--light);
+        opacity: 0.8;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    
+    @media (max-width: 768px) {
+        .inbox-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .inbox-actions {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .email-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.8rem;
+        }
+        
+        .email-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .email-date {
+            margin-left: 0;
+        }
+        
+        .email-actions {
+            width: 100%;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        .inbox-stats {
+            justify-content: center;
+        }
+        
+        .stat {
+            flex: 1;
+            min-width: auto;
+        }
+    }
+</style>
+
+<div class="inbox-container">
+    <div class="inbox-header">
+        <h1><i class="fas fa-inbox"></i> Gmail Inbox</h1>
+        <div class="inbox-actions">
+            <a href="{% url 'emails:refresh_emails' %}" class="btn btn-primary">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </a>
+            <a href="{% url 'emails:connect_gmail' %}" class="btn btn-outline">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            {% if request.session.credentials %}
+            <a href="{% url 'emails:disconnect_gmail' %}" class="btn btn-danger">
+                <i class="fas fa-unlink"></i> Disconnect
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if api_status %}
+    <div class="api-status {{ api_status }}">
+        <i class="fas fa-{% if api_status == 'connected' %}check-circle{% else %}exclamation-triangle{% endif %}"></i>
+        <span>
+            {% if api_status == 'connected' %}
+                Connected to Gmail API ✅
+            {% else %}
+                Using cached emails - Gmail API temporarily unavailable 📝
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+    
+    {% if not request.session.credentials %}
+    <div class="connect-prompt">
+        <i class="fab fa-google"></i>
+        <h2>Connect Your Gmail Account</h2>
+        <p>Connect your Gmail to manage emails directly from Zentry. View your inbox, send replies, and stay organized without leaving the app.</p>
+        <a href="{% url 'emails:connect_gmail' %}" class="btn btn-primary">
+            <i class="fab fa-google"></i> Connect Gmail
+        </a>
+    </div>
+    
+    {% else %}
+    <div class="inbox-stats">
+        <div class="stat">
+            <span class="stat-value">{{ total_emails }}</span>
+            <span class="stat-label">Total Emails</span>
+        </div>
+        <div class="stat">
+            <span class="stat-value">{{ emails.number }}</span>
+            <span class="stat-label">Current Page</span>
+        </div>
+        <div class="stat">
+            <span class="stat-value">{{ emails.paginator.num_pages }}</span>
+            <span class="stat-label">Total Pages</span>
+        </div>
+        <div class="stat">
+            <span class="stat-value">{{ emails|length }}</span>
+            <span class="stat-label">Showing</span>
+        </div>
+    </div>
+    
+    <div class="emails-list">
+        {% if emails %}
+            {% for email in emails %}
+            <div class="email-item {% if not email.read %}unread{% endif %} {% if email.is_important %}important{% endif %}" 
+                 onclick="window.location.href='{% url 'emails:email_detail' email.id %}'">
+                
+                <input type="checkbox" class="email-checkbox" onclick="event.stopPropagation()">
+                
+                <div class="email-avatar">
+                    {{ email.sender_name|first|upper }}
+                </div>
+                
+                <div class="email-content">
+                    <div class="email-header">
+                        <h3 class="email-sender">
+                            {{ email.sender_name }}
+                            {% if email.is_important %}
+                            <span class="importance-badge">Important</span>
+                            {% endif %}
+                        </h3>
+                        <span class="email-date">{{ email.date }}</span>
+                    </div>
+                    
+                    <h4 class="email-subject">{{ email.subject }}</h4>
+                    <p class="email-preview">{{ email.snippet }}</p>
+                </div>
+                
+                <div class="email-actions">
+                    <a href="{% url 'emails:email_detail' email.id %}" class="email-action-btn" title="View Email" onclick="event.stopPropagation()">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{% url 'emails:mark_resolved' email.id %}" class="email-action-btn" title="Mark as Resolved" onclick="event.stopPropagation()">
+                        <i class="fas fa-check-circle"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-inbox">
+                <i class="fas fa-envelope-open"></i>
+                <h3>No emails found</h3>
+                <p>Your inbox is empty or there was an issue loading your emails.</p>
+                <a href="{% url 'emails:refresh_emails' %}" class="btn btn-primary" style="margin-top: 1rem;">
+                    <i class="fas fa-sync-alt"></i> Try Refreshing
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if emails.paginator.num_pages > 1 %}
+    <div class="pagination">
+        {% if emails.has_previous %}
+            <a href="?page={{ emails.previous_page_number }}" class="btn btn-outline">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+        {% endif %}
+        
+        <span class="pagination-info">
+            Page {{ emails.number }} of {{ emails.paginator.num_pages }}
+        </span>
+        
+        {% if emails.has_next %}
+            <a href="?page={{ emails.next_page_number }}" class="btn btn-outline">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh every 5 minutes if connected
+        {% if api_status == 'connected' %}
+        setInterval(function() {
+            window.location.href = "{% url 'emails:refresh_emails' %}";
+        }, 300000); // 5 minutes
+        {% endif %}
+        
+        // Mark as resolved functionality
+        document.querySelectorAll('.email-action-btn .fa-check-circle').forEach(icon => {
+            icon.closest('a').addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (confirm('Mark this email as resolved?')) {
+                    // The link will handle the redirect
+                    return true;
+                }
+                e.preventDefault();
+            });
+        });
+        
+        // Checkbox selection
+        const checkboxes = document.querySelectorAll('.email-checkbox');
+        const selectAll = document.getElementById('select-all');
+        
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

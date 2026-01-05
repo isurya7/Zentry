@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}Zentry - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+    <header>
+        <div class="logo">Zentry<span>.</span></div>
+        <div class="user-menu">
+            <a href="{% url 'journal:journal_list' %}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <div class="dropdown">
+                <div class="user-avatar">
+                    {{ user.username|first|upper }}
+                </div>
+                <div class="dropdown-menu">
+                    <a href="{% url 'dashboard:dashboard' %}" class="dropdown-item">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                    <a href="{% url 'accounts:logout' %}" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="journal-form-main">
+        <div class="form-container">
+            <div class="form-header">
+                <h1 class="gradient-text">{{ title }}</h1>
+                <p class="subtitle">Express your thoughts and feelings</p>
+            </div>
+
+            <div class="form-card">
+                <form method="post" enctype="multipart/form-data" class="journal-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="{{ form.title.id_for_label }}">Title</label>
+                            {{ form.title }}
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="{{ form.cover_image.id_for_label }}">Cover Image</label>
+                            <div class="file-upload-area">
+                                {{ form.cover_image }}
+                                <div class="upload-preview">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Click to upload or drag and drop</p>
+                                    <span>PNG, JPG, GIF up to 10MB</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="{{ form.content.id_for_label }}">Content</label>
+                            {{ form.content }}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.date.id_for_label }}">Date</label>
+                            {{ form.date }}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.mood.id_for_label }}">Mood</label>
+                            {{ form.mood }}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.tags.id_for_label }}">Tags</label>
+                            {{ form.tags }}
+                            <small class="form-help">Separate tags with commas</small>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <div class="toggle-group">
+                                {{ form.is_public }}
+                                <label for="{{ form.is_public.id_for_label }}" class="toggle-label">
+                                    <span class="toggle-slider"></span>
+                                    Make this entry public
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{% url 'journal:journal_list' %}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Entry
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .journal-form-main {
+        padding: 2rem 0;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-container {
+        width: 100%;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .form-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        font-size: 1.1rem;
+        color: var(--light);
+        opacity: 0.8;
+    }
+
+    .form-card {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        padding: 2rem;
+    }
+
+    .journal-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--light);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 0.75rem 1rem;
+        background: var(--dark-3);
+        border: 1px solid var(--dark-3);
+        border-radius: 0.5rem;
+        color: var(--light);
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.3);
+    }
+
+    .form-group textarea {
+        min-height: 200px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    .form-help {
+        color: var(--light);
+        opacity: 0.6;
+        font-size: 0.8rem;
+    }
+
+    .file-upload-area {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .file-upload-area input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .upload-preview {
+        padding: 3rem 2rem;
+        background: var(--dark-3);
+        border: 2px dashed var(--dark-3);
+        border-radius: 0.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .upload-preview:hover {
+        border-color: var(--primary-light);
+        background: rgba(109, 40, 217, 0.1);
+    }
+
+    .upload-preview i {
+        font-size: 2.5rem;
+        color: var(--primary-light);
+        margin-bottom: 1rem;
+    }
+
+    .upload-preview p {
+        color: var(--light);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-preview span {
+        color: var(--light);
+        opacity: 0.7;
+        font-size: 0.9rem;
+    }
+
+    .toggle-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        font-weight: 500;
+        color: var(--light);
+    }
+
+    .toggle-slider {
+        width: 50px;
+        height: 24px;
+        background: var(--dark-3);
+        border-radius: 12px;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .toggle-slider::before {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: var(--light);
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: all 0.3s ease;
+    }
+
+    input[type="checkbox"] {
+        display: none;
+    }
+
+    input[type="checkbox"]:checked + .toggle-label .toggle-slider {
+        background: var(--primary);
+    }
+
+    input[type="checkbox"]:checked + .toggle-label .toggle-slider::before {
+        transform: translateX(26px);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--dark-3);
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, var(--primary-light), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}

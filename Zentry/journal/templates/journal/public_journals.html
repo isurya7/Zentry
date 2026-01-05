@@ -1,0 +1,460 @@
+{% extends 'base.html' %}
+
+{% block title %}Zentry - Public Journals{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+
+    <main class="public-journals-main">
+        <div class="public-header">
+            <h1 class="gradient-text">Public Journals</h1>
+            <p class="subtitle">Discover inspiring stories from the community</p>
+            
+            {% if not user.is_authenticated %}
+            <div class="guest-message">
+                <p>Join our community to start sharing your own stories and connect with others.</p>
+                <div class="guest-actions">
+                    <a href="{% url 'accounts:signup' %}" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Join Now
+                    </a>
+                    <a href="{% url 'accounts:signin' %}" class="btn btn-outline">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if entries %}
+        <div class="public-stats">
+            <div class="stat-badge">
+                <i class="fas fa-book-open"></i>
+                <span>{{ entries.count }} Public Stories</span>
+            </div>
+            <div class="stat-badge">
+                <i class="fas fa-users"></i>
+                <span>{{ unique_authors }} Authors</span>
+            </div>
+        </div>
+
+        <div class="entries-grid">
+            {% for entry in entries %}
+            <div class="public-journal-card" onclick="location.href='{% url 'journal:view_journal' entry.id %}'" style="cursor: pointer;">
+                {% if entry.cover_image %}
+                <div class="card-image">
+                    <img src="{{ entry.cover_image.url }}" alt="{{ entry.title }}">
+                    <div class="card-overlay">
+                        <span class="entry-date">{{ entry.date }}</span>
+                        {% if entry.mood %}
+                        <span class="mood-badge">{{ entry.get_mood_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="card-header-no-image">
+                    <span class="entry-date">{{ entry.date }}</span>
+                    {% if entry.mood %}
+                    <span class="mood-badge">{{ entry.get_mood_display }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="card-content">
+                    <div class="author-info">
+                        <div class="author-avatar">
+                            {{ entry.user.username|first|upper }}
+                        </div>
+                        <div class="author-details">
+                            <span class="author-name">{{ entry.user.username }}</span>
+                            <span class="post-date">{{ entry.created_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                    
+                    <h3 class="card-title">{{ entry.title }}</h3>
+                    <p class="card-excerpt">{{ entry.content|truncatewords:25 }}</p>
+                    
+                    {% if entry.tags %}
+                    <div class="card-tags">
+                        {% for tag in entry.get_tags_list %}
+                        <span class="tag">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-actions">
+                        <a href="{% url 'journal:view_journal' entry.id %}" class="btn-action">
+                            <i class="fas fa-eye"></i> Read Story
+                        </a>
+                        <div class="engagement-stats">
+                            <span class="engagement-item">
+                                <i class="fas fa-heart"></i>
+                                <span>0</span>
+                            </span>
+                            <span class="engagement-item">
+                                <i class="fas fa-comment"></i>
+                                <span>0</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-public">
+            <div class="empty-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3>No public journals yet</h3>
+            <p>Be the first to share your story with the community!</p>
+            {% if user.is_authenticated %}
+            <a href="{% url 'journal:create_journal' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Public Entry
+            </a>
+            {% else %}
+            <a href="{% url 'accounts:signup' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Join to Share
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .public-journals-main {
+        padding: 2rem 0;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .public-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem 0;
+    }
+
+    .public-header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+        color: var(--light);
+        opacity: 0.8;
+        margin-bottom: 2rem;
+    }
+
+    .guest-message {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .guest-message p {
+        color: var(--light);
+        opacity: 0.8;
+        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+    }
+
+    .guest-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .public-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 2rem;
+        padding: 0.75rem 1.5rem;
+        color: var(--light);
+    }
+
+    .stat-badge i {
+        color: var(--primary-light);
+    }
+
+    .entries-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .public-journal-card {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .public-journal-card:hover {
+        border-color: var(--primary-light);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-image {
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .public-journal-card:hover .card-image img {
+        transform: scale(1.05);
+    }
+
+    .card-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .card-header-no-image {
+        padding: 1rem 1.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .entry-date {
+        font-size: 0.85rem;
+        color: var(--light);
+        opacity: 0.8;
+    }
+
+    .mood-badge {
+        padding: 0.25rem 0.75rem;
+        background: var(--dark-3);
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        color: var(--light);
+    }
+
+    .card-content {
+        padding: 1.5rem;
+    }
+
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .author-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+        font-size: 0.9rem;
+    }
+
+    .author-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .author-name {
+        font-weight: 600;
+        color: var(--light);
+        font-size: 0.9rem;
+    }
+
+    .post-date {
+        font-size: 0.75rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        color: var(--light);
+        line-height: 1.4;
+    }
+
+    .card-excerpt {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .tag {
+        padding: 0.25rem 0.75rem;
+        background: var(--dark-3);
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        color: var(--light);
+    }
+
+    .card-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1rem;
+        border-top: 1px solid var(--dark-3);
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        background: var(--primary);
+        border: 1px solid var(--primary);
+        border-radius: 0.5rem;
+        color: white;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-action:hover {
+        background: var(--primary-light);
+        border-color: var(--primary-light);
+        transform: translateY(-1px);
+    }
+
+    .engagement-stats {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .engagement-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: var(--light);
+        opacity: 0.7;
+        font-size: 0.8rem;
+    }
+
+    .engagement-item i {
+        font-size: 0.7rem;
+    }
+
+    .empty-public {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        margin: 2rem 0;
+    }
+
+    .empty-public .empty-icon {
+        font-size: 4rem;
+        color: var(--primary-light);
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+    }
+
+    .empty-public h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--light);
+    }
+
+    .empty-public p {
+        color: var(--light);
+        opacity: 0.7;
+        margin-bottom: 2rem;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, var(--primary-light), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    @media (max-width: 768px) {
+        .public-header h1 {
+            font-size: 2rem;
+        }
+        
+        .entries-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .public-stats {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .guest-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .guest-actions .btn {
+            width: 200px;
+            justify-content: center;
+        }
+        
+        .card-actions {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .engagement-stats {
+            align-self: flex-end;
+        }
+    }
+</style>
+{% endblock %}

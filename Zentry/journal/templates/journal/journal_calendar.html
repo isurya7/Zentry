@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block journal_content %}
+<div class="calendar-header">
+    <div class="d-flex justify-content-between align-items-center mb-6">
+        <div>
+            <h1 class="gradient-text">Journal Calendar</h1>
+            <p class="text-light opacity-80">Browse your entries by date</p>
+        </div>
+        <div class="calendar-nav">
+            <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline">
+                <i class="fas fa-chevron-left"></i> Prev
+            </a>
+            <span class="calendar-month">{{ month|date:"F Y" }}</span>
+            <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="calendar-container">
+    <div class="calendar-grid">
+        <!-- Weekday headers -->
+        <div class="calendar-weekday">Sun</div>
+        <div class="calendar-weekday">Mon</div>
+        <div class="calendar-weekday">Tue</div>
+        <div class="calendar-weekday">Wed</div>
+        <div class="calendar-weekday">Thu</div>
+        <div class="calendar-weekday">Fri</div>
+        <div class="calendar-weekday">Sat</div>
+
+        <!-- Calendar days -->
+        {% for day in days %}
+        <div class="calendar-day {% if day in entries_by_date %}has-entry{% endif %}">
+            <div class="day-number">{{ day }}</div>
+            {% if day in entries_by_date %}
+            <div class="day-entry">
+                <a href="{% url 'journal:view_journal' entries_by_date.day.id %}" 
+                   class="entry-preview" 
+                   title="{{ entries_by_date.day.title }}">
+                    📖
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="calendar-legend">
+    <div class="legend-item">
+        <div class="legend-color has-entry"></div>
+        <span>Has journal entry</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .calendar-month {
+        font-weight: 600;
+        color: var(--light);
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .calendar-container {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background: var(--dark-3);
+        border: 1px solid var(--dark-3);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .calendar-weekday {
+        background: var(--dark-3);
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+        color: var(--light);
+        font-size: 0.9rem;
+    }
+
+    .calendar-day {
+        background: var(--dark-2);
+        padding: 0.75rem;
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .calendar-day:hover {
+        background: var(--dark-3);
+    }
+
+    .calendar-day.has-entry {
+        background: rgba(109, 40, 217, 0.1);
+        border: 1px solid var(--primary-light);
+    }
+
+    .day-number {
+        font-weight: 600;
+        color: var(--light);
+        font-size: 0.9rem;
+    }
+
+    .day-entry {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .entry-preview {
+        font-size: 1.5rem;
+        text-decoration: none;
+        transition: transform 0.3s ease;
+    }
+
+    .entry-preview:hover {
+        transform: scale(1.2);
+    }
+
+    .calendar-legend {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 0.25rem;
+        border: 1px solid var(--dark-3);
+    }
+
+    .legend-color.has-entry {
+        background: rgba(109, 40, 217, 0.1);
+        border-color: var(--primary-light);
+    }
+
+    .mb-6 { margin-bottom: 2rem; }
+
+    @media (max-width: 768px) {
+        .calendar-nav {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .calendar-day {
+            min-height: 80px;
+            padding: 0.5rem;
+        }
+        
+        .day-number {
+            font-size: 0.8rem;
+        }
+        
+        .entry-preview {
+            font-size: 1.2rem;
+        }
+    }
+</style>
+{% endblock %}

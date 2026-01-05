@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Zentry{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        display: flex;
+        min-height: 100vh;
+    }
+    
+    .sidebar {
+        width: 280px;
+        background-color: var(--dark-2);
+        border-right: 1px solid var(--dark-3);
+        padding: 1.5rem 1rem;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+    }
+    
+    .main-content {
+        flex: 1;
+        margin-left: 280px;
+        padding: 2rem;
+    }
+    
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--light);
+        margin-bottom: 2rem;
+        padding-left: 0.5rem;
+    }
+    
+    .logo span {
+        color: var(--primary-light);
+    }
+    
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        color: var(--light);
+        text-decoration: none;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-item:hover, .nav-item.active {
+        background-color: var(--dark-3);
+        color: var(--primary-light);
+    }
+    
+    .nav-item i {
+        width: 20px;
+        text-align: center;
+    }
+    
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .welcome h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .welcome p {
+        color: var(--light);
+        opacity: 0.8;
+    }
+    
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .notification-btn, .chat-btn, .profile-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--dark-2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--light);
+        text-decoration: none;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .notification-btn:hover, .chat-btn:hover, .profile-btn:hover {
+        background-color: var(--dark-3);
+        color: var(--primary-light);
+    }
+    
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background-color: var(--primary);
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .stat-card h3 {
+        font-size: 0.9rem;
+        color: var(--light);
+        opacity: 0.8;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--light);
+    }
+    
+    .stat-card .trend {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+    
+    .trend.up {
+        color: var(--success);
+    }
+    
+    .trend.down {
+        color: var(--error);
+    }
+    
+    .content-section {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        border: 1px solid var(--dark-3);
+        margin-bottom: 2rem;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.25rem;
+        color: var(--light);
+    }
+    
+    .view-all {
+        color: var(--primary-light);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .view-all:hover {
+        text-decoration: underline;
+    }
+    
+    .email-item, .task-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid var(--dark-3);
+    }
+    
+    .email-item:last-child, .task-item:last-child {
+        border-bottom: none;
+    }
+    
+    .email-icon, .task-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--dark-3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .email-content, .task-content {
+        flex: 1;
+    }
+    
+    .email-sender, .task-title {
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 0.25rem;
+    }
+    
+    .email-subject, .task-due {
+        font-size: 0.9rem;
+        color: var(--light);
+        opacity: 0.8;
+    }
+    
+    .email-time, .task-status {
+        font-size: 0.8rem;
+        color: var(--light);
+        opacity: 0.6;
+        margin-left: 1rem;
+        white-space: nowrap;
+    }
+    
+    .priority-high {
+        border-left: 4px solid var(--error);
+    }
+    
+    .priority-medium {
+        border-left: 4px solid var(--accent);
+    }
+    
+    .priority-low {
+        border-left: 4px solid var(--success);
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .status-pending {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: var(--error);
+    }
+    
+    .status-in-progress {
+        background-color: rgba(245, 158, 11, 0.2);
+        color: var(--accent);
+    }
+    
+    .status-completed {
+        background-color: rgba(16, 185, 129, 0.2);
+        color: var(--success);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .empty-state i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    @media (max-width: 1024px) {
+        .sidebar {
+            width: 240px;
+        }
+        
+        .main-content {
+            margin-left: 240px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .dashboard-container {
+            flex-direction: column;
+        }
+        
+        .sidebar {
+            width: 100%;
+            height: auto;
+            position: relative;
+            padding: 1rem;
+        }
+        
+        .main-content {
+            margin-left: 0;
+            padding: 1rem;
+        }
+        
+        .nav-items {
+            display: flex;
+            overflow-x: auto;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        .nav-item {
+            white-space: nowrap;
+            margin-bottom: 0;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-rocket"></i>
+            Zentry<span>.</span>
+        </div>
+        
+        <div class="nav-items">
+            <a href="{% url 'dashboard:dashboard' %}" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'emails:inbox' %}" class="nav-item">
+                <i class="fas fa-star"></i>
+                <span>Important Emails</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-envelope"></i>
+                <span>Unread Emails</span>
+                {% if stats.unread_emails_count > 0 %}
+                <span class="notification-badge">{{ stats.unread_emails_count }}</span>
+                {% endif %}
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-message"></i>
+                <span>Messages</span>
+                {% if stats.unread_emails_count > 0 %}
+                <span class="notification-badge">{{ stats.unread_emails_count }}</span>
+                {% endif %}
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-tasks"></i>
+                <span>Daily Tasks</span>
+                {% if stats.pending_tasks_count > 0 %}
+                <span class="notification-badge">{{ stats.pending_tasks_count }}</span>
+                {% endif %}
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Vision Board</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-sticky-note"></i>
+                <span>Notes</span>
+            </a>
+            <a href="{% url 'journal:journal_list' %}" class="nav-item">
+                <i class="fas fa-book"></i>
+                <span>Journal</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="welcome">
+                <h1>Welcome back, {{ request.user.first_name|default:request.user.username }}!</h1>
+                <p>Here's what's happening with your productivity today.</p>
+            </div>
+            
+            <div class="header-actions">
+                <a href="#" class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Points</h3>
+                <div class="value">{{ profile.total_points }}</div>
+                <div class="trend up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>{{ stats.completed_tasks_week }} this week</span>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Important Emails</h3>
+                <div class="value">{{ stats.important_emails_week }}</div>
+                <div class="trend up">
+                    <i class="fas fa-envelope"></i>
+                    <span>This week</span>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Tasks Completed</h3>
+                <div class="value">{{ stats.completed_tasks_week }}</div>
+                <div class="trend up">
+                    <i class="fas fa-check-circle"></i>
+                    <span>This week</span>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Journal Entries</h3>
+                <div class="value">{{ stats.journal_entries_week }}</div>
+                <div class="trend up">
+                    <i class="fas fa-book"></i>
+                    <span>This week</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Important Emails Section -->
+        <div class="content-section">
+            <div class="section-header">
+                <h2>Important Emails</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            
+            {% if important_emails %}
+                {% for email in important_emails %}
+                <div class="email-item priority-high">
+                    <div class="email-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="email-content">
+                        <div class="email-sender">{{ email.sender }}</div>
+                        <div class="email-subject">{{ email.subject|truncatewords:10 }}</div>
+                    </div>
+                    <div class="email-time">{{ email.received_at|timesince }} ago</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No important emails right now. Good job!</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pending Tasks Section -->
+        <div class="content-section">
+            <div class="section-header">
+                <h2>Pending Tasks</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            
+            {% if pending_tasks %}
+                {% for task in pending_tasks %}
+                <div class="task-item">
+                    <div class="task-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="task-content">
+                        <div class="task-title">{{ task.title }}</div>
+                        <div class="task-due">Due: {{ task.date|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="task-status">
+                        <span class="status-badge status-pending">Pending</span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No pending tasks. Great job!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Dashboard specific JavaScript can go here
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Dashboard loaded successfully');
+        
+        // You can add auto-refresh functionality here
+        setInterval(function() {
+            // Optionally refresh stats every 5 minutes
+            console.log('Dashboard stats might need refreshing');
+        }, 300000);
+    });
+</script>
+{% endblock %}

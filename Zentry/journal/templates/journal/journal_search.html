@@ -1,0 +1,548 @@
+{% extends 'base.html' %}
+
+{% block title %}Zentry - Search Journal{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+    <main class="journal-search-main">
+        <div class="journal-search-header">
+            <h1 class="journal-search-title">Search Journal</h1>
+            <p class="journal-search-subtitle">Find your thoughts and memories</p>
+            
+            <div class="journal-search-box">
+                <form method="get" action="{% url 'journal:journal_search' %}" class="journal-search-form">
+                    <div class="journal-search-input-group">
+                        <i class="fas fa-search journal-search-icon"></i>
+                        <input type="text" name="q" value="{{ query }}" placeholder="Search by title, content, or tags..." 
+                               class="journal-search-input" id="journalSearchInput">
+                        <button type="submit" class="journal-search-btn">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if query %}
+        <div class="journal-search-results">
+            <div class="journal-results-header">
+                <h3 class="journal-results-title">
+                    {% if entries %}
+                        Found {{ entries.count }} result{{ entries.count|pluralize }} for "{{ query }}"
+                    {% else %}
+                        No results found for "{{ query }}"
+                    {% endif %}
+                </h3>
+            </div>
+
+            {% if entries %}
+            <div class="journal-search-grid">
+                {% for entry in entries %}
+                <div class="journal-search-card" onclick="location.href='{% url 'journal:view_journal' entry.id %}'" style="cursor: pointer;">
+                    {% if entry.cover_image %}
+                    <div class="journal-search-card-image">
+                        <img src="{{ entry.cover_image.url }}" alt="{{ entry.title }}">
+                        <div class="journal-search-card-overlay">
+                            <span class="journal-search-date">{{ entry.date }}</span>
+                            {% if entry.mood %}
+                            <span class="journal-search-mood">{{ entry.get_mood_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="journal-search-card-header">
+                        <span class="journal-search-date">{{ entry.date }}</span>
+                        {% if entry.mood %}
+                        <span class="journal-search-mood">{{ entry.get_mood_display }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="journal-search-card-content">
+                        <h3 class="journal-search-card-title">{{ entry.title }}</h3>
+                        <p class="journal-search-excerpt">{{ entry.content|truncatewords:30 }}</p>
+                        
+                        {% if entry.tags %}
+                        <div class="journal-search-tags">
+                            {% for tag in entry.get_tags_list %}
+                            <span class="journal-search-tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="journal-search-actions">
+                            <a href="{% url 'journal:view_journal' entry.id %}" class="journal-search-action-btn">
+                                <i class="fas fa-eye"></i> Read
+                            </a>
+                            <a href="{% url 'journal:edit_journal' entry.id %}" class="journal-search-action-btn">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            {% if entry.is_public %}
+                            <span class="journal-search-public">
+                                <i class="fas fa-globe"></i>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="journal-search-empty">
+                <div class="journal-search-empty-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="journal-search-empty-title">No results found</h3>
+                <p class="journal-search-empty-text">
+                    Try searching with different keywords or browse your 
+                    <a href="{% url 'journal:journal_list' %}" class="journal-search-empty-link">journal entries</a>.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="journal-search-suggestions">
+            <div class="journal-search-suggestions-grid">
+                <div class="journal-search-suggestion">
+                    <div class="journal-search-suggestion-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <h4 class="journal-search-suggestion-title">Search by Tags</h4>
+                    <p class="journal-search-suggestion-text">Find entries using specific tags like "travel", "work", or "ideas"</p>
+                </div>
+                <div class="journal-search-suggestion">
+                    <div class="journal-search-suggestion-icon">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <h4 class="journal-search-suggestion-title">Search by Date</h4>
+                    <p class="journal-search-suggestion-text">Use the calendar view to browse entries by specific dates</p>
+                </div>
+                <div class="journal-search-suggestion">
+                    <div class="journal-search-suggestion-icon">
+                        <i class="fas fa-smile"></i>
+                    </div>
+                    <h4 class="journal-search-suggestion-title">Search by Mood</h4>
+                    <p class="journal-search-suggestion-text">Filter entries by your mood to revisit specific emotional states</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .journal-search-main {
+        padding: 2rem 0;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .journal-search-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem 0;
+    }
+
+    .journal-search-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, var(--primary-light), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .journal-search-subtitle {
+        font-size: 1.2rem;
+        color: var(--light);
+        opacity: 0.8;
+        margin-bottom: 2rem;
+    }
+
+    .journal-search-box {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .journal-search-form {
+        width: 100%;
+    }
+
+    .journal-search-input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 2rem;
+        padding: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .journal-search-input-group:focus-within {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.3);
+    }
+
+    .journal-search-icon {
+        padding: 0 1rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+
+    .journal-search-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--light);
+        font-size: 1rem;
+        padding: 0.75rem 0;
+        outline: none;
+    }
+
+    .journal-search-input::placeholder {
+        color: var(--light);
+        opacity: 0.6;
+    }
+
+    .journal-search-btn {
+        background: var(--primary);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .journal-search-btn:hover {
+        background: var(--primary-light);
+        transform: scale(1.05);
+    }
+
+    .journal-search-results {
+        margin-top: 2rem;
+    }
+
+    .journal-results-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .journal-results-title {
+        color: var(--light);
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .journal-search-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        margin: 2rem 0;
+    }
+
+    .journal-search-empty-icon {
+        font-size: 4rem;
+        color: var(--primary-light);
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+    }
+
+    .journal-search-empty-title {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--light);
+    }
+
+    .journal-search-empty-text {
+        color: var(--light);
+        opacity: 0.7;
+        margin-bottom: 0;
+    }
+
+    .journal-search-empty-link {
+        color: var(--primary-light);
+        text-decoration: none;
+    }
+
+    .journal-search-empty-link:hover {
+        text-decoration: underline;
+    }
+
+    .journal-search-suggestions {
+        margin-top: 3rem;
+    }
+
+    .journal-search-suggestions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .journal-search-suggestion {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .journal-search-suggestion:hover {
+        border-color: var(--primary-light);
+        transform: translateY(-5px);
+    }
+
+    .journal-search-suggestion-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin: 0 auto 1.5rem;
+    }
+
+    .journal-search-suggestion-title {
+        color: var(--light);
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .journal-search-suggestion-text {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .journal-search-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .journal-search-card {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .journal-search-card:hover {
+        border-color: var(--primary-light);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .journal-search-card-image {
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .journal-search-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .journal-search-card:hover .journal-search-card-image img {
+        transform: scale(1.05);
+    }
+
+    .journal-search-card-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .journal-search-card-header {
+        padding: 1rem 1.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .journal-search-date {
+        font-size: 0.85rem;
+        color: var(--light);
+        opacity: 0.8;
+    }
+
+    .journal-search-mood {
+        padding: 0.25rem 0.75rem;
+        background: var(--dark-3);
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        color: var(--light);
+    }
+
+    .journal-search-card-content {
+        padding: 1.5rem;
+    }
+
+    .journal-search-card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        color: var(--light);
+        line-height: 1.4;
+    }
+
+    .journal-search-excerpt {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .journal-search-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .journal-search-tag {
+        padding: 0.25rem 0.75rem;
+        background: var(--dark-3);
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        color: var(--light);
+    }
+
+    .journal-search-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--dark-3);
+    }
+
+    .journal-search-action-btn {
+        padding: 0.5rem 1rem;
+        background: var(--dark-3);
+        border: 1px solid var(--dark-3);
+        border-radius: 0.5rem;
+        color: var(--light);
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .journal-search-action-btn:hover {
+        background: var(--primary);
+        border-color: var(--primary-light);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .journal-search-public {
+        color: var(--success);
+        margin-left: auto;
+    }
+
+    @media (max-width: 768px) {
+        .journal-search-title {
+            font-size: 2rem;
+        }
+        
+        .journal-search-suggestions-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .journal-search-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .journal-search-input-group {
+            flex-direction: column;
+            border-radius: 1rem;
+            padding: 1rem;
+        }
+        
+        .journal-search-input {
+            margin: 0.5rem 0;
+            text-align: center;
+        }
+        
+        .journal-search-actions {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .journal-search-public {
+            margin-left: 0;
+            align-self: flex-end;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('journalSearchInput');
+        const searchForm = document.querySelector('.journal-search-form');
+        
+        // Focus search input on page load if there's no query
+        {% if not query %}
+        if (searchInput) {
+            setTimeout(() => {
+                searchInput.focus();
+            }, 300);
+        }
+        {% endif %}
+        
+        // Add keyboard shortcut for search (Ctrl+K or Cmd+K)
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }
+        });
+        
+        // Clear search when clicking escape in search input
+        if (searchInput) {
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    this.value = '';
+                    this.blur();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

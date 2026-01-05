@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Connect Gmail - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .connect-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .connect-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        border: 1px solid var(--dark-3);
+        text-align: center;
+    }
+    
+    .connect-header {
+        margin-bottom: 2rem;
+    }
+    
+    .connect-icon {
+        font-size: 3.5rem;
+        color: #EA4335;
+        margin-bottom: 1.5rem;
+    }
+    
+    .connect-header h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .connect-header p {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+    }
+    
+    .benefits-list {
+        text-align: left;
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background-color: var(--dark-3);
+        border-radius: 0.5rem;
+        border-left: 4px solid var(--primary);
+    }
+    
+    .benefits-list h3 {
+        color: var(--primary-light);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .benefits-list ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .benefits-list li {
+        padding: 0.5rem 0;
+        color: var(--light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .benefits-list li i {
+        color: var(--primary-light);
+    }
+    
+    .privacy-note {
+        background-color: rgba(234, 67, 53, 0.1);
+        border: 1px solid #EA4335;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+    
+    .privacy-note h4 {
+        color: #EA4335;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .privacy-note p {
+        color: var(--light);
+        opacity: 0.8;
+        font-size: 0.9rem;
+        margin: 0;
+        line-height: 1.5;
+    }
+    
+    .connect-btn {
+        background: linear-gradient(135deg, #4285F4 0%, #34A853 33%, #FBBC05 66%, #EA4335 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-top: 1rem;
+    }
+    
+    .connect-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .alternative {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--dark-3);
+    }
+    
+    .alternative p {
+        color: var(--light);
+        opacity: 0.7;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="connect-container">
+    <div class="connect-card">
+        <div class="connect-header">
+            <div class="connect-icon">
+                <i class="fab fa-google"></i>
+            </div>
+            <h1>Connect Your Gmail</h1>
+            <p>Connect your Gmail account to manage emails directly from Zentry and boost your productivity</p>
+        </div>
+        
+        <div class="benefits-list">
+            <h3><i class="fas fa-star"></i> What you'll get:</h3>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> View your Gmail inbox directly in Zentry</li>
+                <li><i class="fas fa-check-circle"></i> Send replies without leaving the app</li>
+                <li><i class="fas fa-check-circle"></i> Organize emails with productivity tools</li>
+                <li><i class="fas fa-check-circle"></i> Track important conversations</li>
+            </ul>
+        </div>
+        
+        <div class="privacy-note">
+            <h4><i class="fas fa-shield-alt"></i> Privacy & Security</h4>
+            <p>We only request read-only access to your emails. Your data remains secure and we never store your email content on our servers.</p>
+        </div>
+        
+        <a href="{% url 'emails:connect_gmail' %}" class="connect-btn">
+            <i class="fab fa-google"></i> Connect with Google
+        </a>
+        
+        <div class="alternative">
+            <p>Prefer not to connect?</p>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline">Skip for now</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

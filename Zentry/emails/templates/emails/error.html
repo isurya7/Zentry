@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Error - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .error-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        text-align: center;
+    }
+    
+    .error-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 3rem 2rem;
+        border: 1px solid var(--error);
+        text-align: center;
+    }
+    
+    .error-icon {
+        font-size: 4rem;
+        color: var(--error);
+        margin-bottom: 1.5rem;
+    }
+    
+    .error-card h1 {
+        font-size: 2.2rem;
+        color: var(--error);
+        margin-bottom: 1rem;
+    }
+    
+    .error-card p {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+    
+    .error-details {
+        background-color: var(--dark-3);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+    
+    .error-details summary {
+        cursor: pointer;
+        color: var(--light);
+        font-weight: 600;
+    }
+    
+    .error-details pre {
+        color: var(--light);
+        opacity: 0.7;
+        font-size: 0.8rem;
+        overflow-x: auto;
+        margin-top: 1rem;
+    }
+    
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .troubleshooting {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--dark-3);
+    }
+    
+    .troubleshooting h3 {
+        color: var(--primary-light);
+        margin-bottom: 1rem;
+    }
+    
+    .troubleshooting ul {
+        text-align: left;
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+    }
+    
+    @media (max-width: 768px) {
+        .error-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h1>Oops! Something went wrong</h1>
+        <p>We encountered an unexpected error while processing your request. Please try again later.</p>
+        
+        {% if error_message %}
+        <div class="error-details">
+            <summary>Error Details</summary>
+            <pre>{{ error_message }}</pre>
+        </div>
+        {% endif %}
+        
+        <div class="error-actions">
+            <a href="{% url 'emails:inbox' %}" class="btn btn-primary">
+                <i class="fas fa-inbox"></i> Back to Inbox
+            </a>
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline">
+                <i class="fas fa-home"></i> Go to Dashboard
+            </a>
+            <button onclick="window.location.reload()" class="btn btn-outline">
+                <i class="fas fa-sync-alt"></i> Try Again
+            </button>
+        </div>
+        
+        <div class="troubleshooting">
+            <h3>Having persistent issues?</h3>
+            <ul>
+                <li>Check your internet connection</li>
+                <li>Ensure you're properly connected to Gmail</li>
+                <li>Try refreshing the page</li>
+                <li>Contact support if the problem continues</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
