@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ note.title }} - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .note-view-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .note-view-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--dark-3);
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .note-title {
+        font-size: 2.5rem;
+        color: var(--light);
+        line-height: 1.2;
+        margin-bottom: 0.5rem;
+        word-break: break-word;
+    }
+    
+    .note-meta {
+        display: flex;
+        gap: 1.5rem;
+        color: var(--light);
+        opacity: 0.7;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .note-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .note-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    
+    .note-content {
+        color: var(--light);
+        line-height: 1.8;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+    
+    .note-content h1,
+    .note-content h2,
+    .note-content h3 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        color: var(--light);
+    }
+    
+    .note-content p {
+        margin-bottom: 1.5rem;
+    }
+    
+    .note-content ul,
+    .note-content ol {
+        margin-left: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .note-content li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .note-content a {
+        color: var(--primary-light);
+        text-decoration: none;
+    }
+    
+    .note-content a:hover {
+        text-decoration: underline;
+    }
+    
+    .back-button {
+        margin-top: 2rem;
+    }
+    
+    .content-length {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    @media (max-width: 768px) {
+        .note-view-container {
+            margin: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .note-view-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .note-title {
+            font-size: 2rem;
+        }
+        
+        .note-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .note-actions {
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="note-view-container">
+    <div class="note-view-header">
+        <div style="flex: 1;">
+            <h1 class="note-title">{{ note.title }}</h1>
+            <div class="note-meta">
+                <div class="note-meta-item">
+                    <i class="far fa-calendar-plus"></i>
+                    Created: {{ note.created_at|date:"F d, Y g:i A" }}
+                </div>
+                <div class="note-meta-item">
+                    <i class="far fa-clock"></i>
+                    Updated: {{ note.updated_at|date:"F d, Y g:i A" }}
+                </div>
+                <div class="note-meta-item">
+                    <i class="far fa-user"></i>
+                    By: {{ note.user.username }}
+                </div>
+            </div>
+        </div>
+        <div class="note-actions">
+            <a href="{% url 'notes:edit_note' note.id %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a href="{% url 'notes:delete_note' note.id %}" class="btn btn-outline">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+            <a href="{% url 'notes:list_notes' %}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+    
+    <div class="note-content">
+        {{ note.content|linebreaksbr }}
+    </div>
+    
+    <div class="content-length">
+        <i class="fas fa-ruler"></i>
+        {{ note.content|length }} characters
+    </div>
+</div>
+{% endblock %}

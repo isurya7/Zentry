@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Note - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .note-form-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .note-form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--dark-3);
+    }
+    
+    .note-form-header h1 {
+        font-size: 2rem;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .note-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--light);
+    }
+    
+    .note-title-input {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: var(--dark-3);
+        border: 1px solid var(--dark-3);
+        color: var(--light);
+        font-family: 'Inter', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .note-title-input:focus {
+        outline: none;
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.3);
+    }
+    
+    .note-content-input {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: var(--dark-3);
+        border: 1px solid var(--dark-3);
+        color: var(--light);
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        line-height: 1.6;
+        resize: vertical;
+        min-height: 300px;
+        transition: all 0.3s ease;
+    }
+    
+    .note-content-input:focus {
+        outline: none;
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.3);
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--dark-3);
+    }
+    
+    .character-count {
+        font-size: 0.85rem;
+        color: var(--light);
+        opacity: 0.7;
+        text-align: right;
+        margin-top: 0.5rem;
+    }
+    
+    .character-count.warning {
+        color: var(--accent);
+    }
+    
+    .character-count.error {
+        color: var(--error);
+    }
+    
+    @media (max-width: 768px) {
+        .note-form-container {
+            margin: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .note-form-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .note-form-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="note-form-container">
+    <div class="note-form-header">
+        <h1>Create New Note</h1>
+        <a href="{% url 'notes:list_notes' %}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Notes
+        </a>
+    </div>
+    
+    <form method="POST" class="note-form">
+        {% csrf_token %}
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="id_title">Title</label>
+            <input type="text" 
+                   name="title" 
+                   id="id_title" 
+                   class="note-title-input" 
+                   placeholder="Enter note title..." 
+                   value="{{ form.title.value|default:'' }}"
+                   maxlength="200"
+                   required>
+            {% if form.title.errors %}
+                <div class="alert alert-error">
+                    {% for error in form.title.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_content">Content</label>
+            <textarea name="content" 
+                      id="id_content" 
+                      class="note-content-input" 
+                      placeholder="Start writing your note here..."
+                      required>{{ form.content.value|default:'' }}</textarea>
+            <div class="character-count" id="char-count">
+                <span id="char-count-text">0</span> characters
+            </div>
+            {% if form.content.errors %}
+                <div class="alert alert-error">
+                    {% for error in form.content.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-actions">
+            <a href="{% url 'notes:list_notes' %}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Note
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const contentInput = document.getElementById('id_content');
+        const charCount = document.getElementById('char-count');
+        const charCountText = document.getElementById('char-count-text');
+        
+        function updateCharCount() {
+            const length = contentInput.value.length;
+            charCountText.textContent = length;
+            
+            // Remove all classes first
+            charCount.classList.remove('warning', 'error');
+            
+            // Add appropriate class based on length
+            if (length > 1000 && length <= 2000) {
+                charCount.classList.add('warning');
+            } else if (length > 2000) {
+                charCount.classList.add('error');
+            }
+        }
+        
+        // Initial count
+        updateCharCount();
+        
+        // Update count on input
+        contentInput.addEventListener('input', updateCharCount);
+        
+        // Auto-resize textarea
+        function autoResize() {
+            contentInput.style.height = 'auto';
+            contentInput.style.height = (contentInput.scrollHeight) + 'px';
+        }
+        
+        contentInput.addEventListener('input', autoResize);
+        
+        // Handle form submission with warning
+        const form = document.querySelector('.note-form');
+        form.addEventListener('submit', function(e) {
+            const contentLength = contentInput.value.length;
+            if (contentLength > 5000) {
+                const confirmSubmit = confirm(
+                    'Your note is very long (' + contentLength + ' characters). ' +
+                    'Are you sure you want to save it?'
+                );
+                if (!confirmSubmit) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

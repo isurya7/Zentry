@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Note - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .delete-container {
+        max-width: 500px;
+        margin: 3rem auto;
+        padding: 2rem;
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        border: 1px solid var(--error);
+        text-align: center;
+    }
+    
+    .delete-icon {
+        font-size: 3rem;
+        color: var(--error);
+        margin-bottom: 1.5rem;
+    }
+    
+    .delete-container h1 {
+        font-size: 1.75rem;
+        color: var(--light);
+        margin-bottom: 1rem;
+    }
+    
+    .delete-container p {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .note-preview {
+        background-color: var(--dark-3);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+    
+    .note-preview-title {
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 0.5rem;
+        word-break: break-word;
+    }
+    
+    .note-preview-content {
+        color: var(--light);
+        opacity: 0.8;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        word-break: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .delete-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-danger {
+        background-color: var(--error);
+        color: white;
+        border: none;
+    }
+    
+    .btn-danger:hover {
+        background-color: #dc2626;
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .delete-container {
+            margin: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .delete-actions {
+            flex-direction: column;
+        }
+        
+        .delete-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="delete-container">
+    <div class="delete-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    
+    <h1>Delete Note</h1>
+    
+    <p>
+        Are you sure you want to delete this note? This action cannot be undone.
+    </p>
+    
+    <div class="note-preview">
+        <div class="note-preview-title">{{ note.title }}</div>
+        <div class="note-preview-content">
+            {{ note.content|striptags|truncatewords:30 }}
+        </div>
+        <div style="font-size: 0.85rem; color: var(--light); opacity: 0.6; margin-top: 0.5rem;">
+            Created: {{ note.created_at|date:"M d, Y" }}
+        </div>
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div class="delete-actions">
+            <a href="{% url 'notes:view_note' note.id %}" class="btn btn-outline">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete Forever
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

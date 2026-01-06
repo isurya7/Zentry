@@ -438,6 +438,41 @@
         margin-bottom: 0.5rem;
     }
     
+    /* Form field styling to match existing UI */
+    .settings-form input[type="text"],
+    .settings-form input[type="email"],
+    .settings-form textarea,
+    .settings-form input[type="file"] {
+        width: 100%;
+        padding: 0.8rem;
+        border-radius: 0.5rem;
+        background-color: var(--dark-3);
+        border: 1px solid var(--dark-3);
+        color: var(--light);
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+    }
+    
+    .settings-form input[type="text"]:focus,
+    .settings-form input[type="email"]:focus,
+    .settings-form textarea:focus {
+        outline: none;
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.3);
+    }
+    
+    .settings-form textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .settings-form label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--light);
+    }
+    
     /* Image preview functionality */
     .image-preview {
         margin-top: 0.8rem;
@@ -449,6 +484,13 @@
         max-height: 150px;
         border-radius: 0.5rem;
         border: 2px solid var(--dark-3);
+    }
+    
+    /* Error message styling */
+    .error-message {
+        color: var(--error);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
     }
     
     /* Responsive design */
@@ -631,41 +673,46 @@
                                value="{{ user.last_name }}">
                     </div>
                     
-                    <!-- UserProfile model fields -->
+                    <!-- UserProfile model fields from the form -->
                     <div class="form-group">
                         <label for="id_profession">Profession</label>
-                        <input type="text" id="id_profession" name="profession" class="form-control" 
-                               value="{{ profile.profession|default:'' }}">
+                        {{ form.profession }}
                     </div>
                     
                     <div class="form-group">
                         <label for="id_bio">Bio</label>
-                        <textarea id="id_bio" name="bio" class="form-control" rows="4">{{ profile.bio|default:'' }}</textarea>
+                        {{ form.bio }}
                     </div>
                     
                     <div class="form-group">
                         <label for="id_pfp">Profile Picture</label>
-                        <input type="file" id="id_pfp" name="pfp" class="form-control" accept="image/*">
+                        {{ form.pfp }}
                         <div class="image-preview" id="avatar-preview-container">
-                            <img src="" alt="Profile picture preview" id="avatar-preview-img">
+                            {% if profile.pfp %}
+                                <img src="{{ profile.pfp.url }}" alt="Current profile picture" id="avatar-preview-img">
+                            {% else %}
+                                <img src="" alt="Profile picture preview" id="avatar-preview-img" style="display: none;">
+                            {% endif %}
                         </div>
                     </div>
                     
                     <div class="form-group">
+                        <label for="id_cover_image">Cover Image</label>
+                        {{ form.cover_image }}
+                    </div>
+                    
+                    <div class="form-group">
                         <label for="id_gmail_email">Gmail Email</label>
-                        <input type="email" id="id_gmail_email" name="gmail_email" class="form-control" 
-                               value="{{ profile.gmail_email|default:'' }}">
+                        {{ form.gmail_email }}
                     </div>
                     
                     <div class="checkbox-group">
-                        <input type="checkbox" id="id_show_vision_publicly" name="show_vision_publicly" 
-                               {% if profile.show_vision_publicly %}checked{% endif %}>
+                        {{ form.show_vision_publicly }}
                         <label for="id_show_vision_publicly">Show visions publicly</label>
                     </div>
                     
                     <div class="checkbox-group">
-                        <input type="checkbox" id="id_show_task_publicly" name="show_task_publicly" 
-                               {% if profile.show_task_publicly %}checked{% endif %}>
+                        {{ form.show_task_publicly }}
                         <label for="id_show_task_publicly">Show tasks publicly</label>
                     </div>
                     
@@ -704,11 +751,20 @@
         });
         
         // Image preview functionality
-        const pfpInput = document.getElementById('id_pfp');
+        const pfpInput = document.getElementById('{{ form.pfp.id_for_label }}');
         const avatarPreview = document.getElementById('avatar-preview-img');
         const avatarPreviewContainer = document.getElementById('avatar-preview-container');
         
         if (pfpInput && avatarPreview) {
+            // Show current avatar if exists
+            if ('{{ profile.pfp }}') {
+                const currentAvatar = document.querySelector('.profile-avatar');
+                if (currentAvatar && currentAvatar.src) {
+                    avatarPreview.src = currentAvatar.src;
+                    avatarPreviewContainer.style.display = 'block';
+                }
+            }
+            
             pfpInput.addEventListener('change', function() {
                 if (this.files && this.files[0]) {
                     const reader = new FileReader();

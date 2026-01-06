@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db import IntegrityError
-from .forms import SignUpForm, SignInForm, UserProfileForm, PasswordConfirmationForm
+from .forms import SignUpForm, SignInForm, UserProfileForm, PasswordConfirmationForm, CombinedProfileForm
 from .models import UserProfile, FriendRequest
 from django.contrib.auth.models import User
 
@@ -92,6 +92,14 @@ def profile_view(request):
         profile = UserProfile.objects.create(user=request.user)
     
     if request.method == 'POST':
+        # Handle User model updates
+        if 'first_name' in request.POST:
+            request.user.first_name = request.POST['first_name']
+        if 'last_name' in request.POST:
+            request.user.last_name = request.POST['last_name']
+        request.user.save()
+        
+        # Handle UserProfile updates
         form = UserProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()

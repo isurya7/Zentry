@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Notes - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .notes-container {
+        margin: 2rem 0;
+    }
+    
+    .notes-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .notes-header h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .notes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    
+    .note-card {
+        background-color: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .note-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary-light);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .note-card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 0.75rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .note-card-content {
+        color: var(--light);
+        opacity: 0.8;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        flex-grow: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .note-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid var(--dark-3);
+        font-size: 0.85rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .note-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-icon {
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        background: none;
+        border: 1px solid var(--dark-3);
+        color: var(--light);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+    }
+    
+    .btn-icon:hover {
+        background-color: var(--dark-3);
+        border-color: var(--primary-light);
+        color: var(--primary-light);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background-color: var(--dark-2);
+        border: 2px dashed var(--dark-3);
+        border-radius: 1rem;
+        margin: 2rem 0;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--primary-light);
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--light);
+    }
+    
+    .empty-state p {
+        color: var(--light);
+        opacity: 0.7;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-notes {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+    
+    .search-notes .search-input {
+        width: 100%;
+        padding-left: 3rem;
+        background-color: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 2rem;
+        color: var(--light);
+        font-family: 'Inter', sans-serif;
+        padding: 1rem 1rem 1rem 3rem;
+        font-size: 1rem;
+    }
+    
+    .search-notes .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .notes-count {
+        color: var(--light);
+        opacity: 0.7;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .notes-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+        
+        .notes-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .notes-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="notes-container">
+    <div class="notes-header">
+        <h1>My Notes</h1>
+        <a href="{% url 'notes:create_note' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Note
+        </a>
+    </div>
+    
+    <div class="search-notes">
+        <i class="fas fa-search search-icon"></i>
+        <form method="GET" action="{% url 'notes:list_notes' %}">
+            <input type="text" 
+                   name="q" 
+                   class="search-input" 
+                   placeholder="Search notes..." 
+                   value="{{ search_query }}">
+        </form>
+    </div>
+    
+    <div class="notes-count">
+        {{ notes|length }} note{{ notes|pluralize }} found
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    {% if notes %}
+        <div class="notes-grid">
+            {% for note in notes %}
+                <div class="note-card" onclick="window.location.href='{% url 'notes:view_note' note.id %}'">
+                    <div class="note-card-title">{{ note.title }}</div>
+                    <div class="note-card-content">
+                        {{ note.content|striptags|truncatewords:30 }}
+                    </div>
+                    <div class="note-card-footer">
+                        <span>
+                            <i class="far fa-clock"></i> {{ note.updated_at|date:"M d, Y" }}
+                        </span>
+                        <div class="note-actions">
+                            <a href="{% url 'notes:edit_note' note.id %}" 
+                               class="btn-icon" 
+                               onclick="event.stopPropagation();">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'notes:delete_note' note.id %}" 
+                               class="btn-icon" 
+                               onclick="event.stopPropagation();">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-sticky-note"></i>
+            <h3>No notes found</h3>
+            <p>
+                {% if search_query %}
+                    No notes match your search. Try different keywords or create a new note.
+                {% else %}
+                    You haven't created any notes yet. Start by creating your first note!
+                {% endif %}
+            </p>
+            <a href="{% url 'notes:create_note' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Your First Note
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-submit search on input
+    document.querySelector('.search-input').addEventListener('input', function(e) {
+        if (this.value.length === 0 || this.value.length >= 3) {
+            this.form.submit();
+        }
+    });
+    
+    // Debounce function for search
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+</script>
+{% endblock %}

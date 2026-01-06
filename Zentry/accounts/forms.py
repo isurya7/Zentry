@@ -115,6 +115,53 @@ class UserProfileForm(forms.ModelForm):
             'gmail_email': forms.EmailInput(attrs={'class': 'form-control'}),
         }
 
+class CombinedProfileForm(forms.ModelForm):
+    first_name = forms.CharField(
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    profession = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    bio = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4})
+    )
+    gmail_email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
+    pfp = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'})
+    )
+    cover_image = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'})
+    )
+    show_vision_publicly = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'checkbox-input'})
+    )
+    show_task_publicly = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'checkbox-input'})
+    )
+    
+    class Meta:
+        model = UserProfile
+        fields = ['pfp', 'bio', 'profession', 'cover_image', 
+                 'show_vision_publicly', 'show_task_publicly', 'gmail_email']
+                 
+
 class PasswordConfirmationForm(forms.Form):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
