@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 from calendar import monthrange
 from .models import JournalEntry
 from .forms import JournalEntryForm
+from accounts.models import UserProfile
+from tasks.utils import check_streak_reminder
+import re
 
 @login_required
 def journal_list(request):
@@ -39,8 +42,59 @@ def create_journal_entry(request):
         if form.is_valid():
             entry = form.save(commit=False)
             entry.user = request.user
+            entry.points_earned = 1  # +1 point for creating journal
+            
+            # Extract new words from content (simple word extraction)
+            content_words = set(re.findall(r'\b[a-zA-Z]{4,}\b', entry.content.lower()))
+            # You can enhance this with a dictionary check later
+            entry.discovered_words = ','.join(list(content_words)[:10])  # Limit to 10 words
+            
             entry.save()
-            messages.success(request, 'Journal entry created successfully!')
+            
+            # Award points and update streak
+            profile, created = UserProfile.objects.get_or_create(user=request.user)
+            profile.total_points += 1
+            profile.daily_points += 1
+            
+            # Update streak
+            today = timezone.now().date()
+            if profile.last_journal_date:
+                days_diff = (today - profile.last_journal_date).days
+                if days_diff == 1:
+                    # Consecutive day
+                    profile.current_streak += 1
+                elif days_diff > 1:
+                    # Streak broken
+                    profile.current_streak = 1
+                # If days_diff == 0, same day, don't change streak
+            else:
+                # First journal entry
+                profile.current_streak = 1
+            
+            if profile.current_streak > profile.longest_streak:
+                profile.longest_streak = profile.current_streak
+            
+            profile.last_journal_date = today
+            profile.save()
+            
+            # Create achievement post automatically
+            try:
+                from social.models import AchievementPost
+                AchievementPost.objects.create(
+                    user=request.user,
+                    title=f"Journal Entry: {entry.title}",
+                    content=f"I wrote a new journal entry '{entry.title}' and earned +1 point! 📝",
+                    achievement_type='journal',
+                    points_earned=1,
+                    is_public=entry.is_public
+                )
+            except:
+                pass  # Social app might not be migrated yet
+            
+            # Check streak reminders for future
+            check_streak_reminder(request.user)
+            
+            messages.success(request, 'Journal entry created successfully! +1 point earned!')
             return redirect('journal:journal_list')
     else:
         form = JournalEntryForm(initial={'date': timezone.now()})

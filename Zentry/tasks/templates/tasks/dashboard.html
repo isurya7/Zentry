@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+
+{% block title %}Task Dashboard - Zentry{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Task Dashboard</h1>
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <div class="stat-value">{{ today_tasks.count }}</div>
+                <div class="stat-label">Today's Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ completed_count }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ overdue_tasks.count }}</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard-grid">
+        <!-- Today's Tasks -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fas fa-calendar-day"></i> Today's Tasks ({{ today|date:"M d, Y" }})</h2>
+                <a href="{% url 'tasks:create_task' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Task
+                </a>
+            </div>
+            
+            {% if today_tasks %}
+            <div class="task-list">
+                {% for task in today_tasks %}
+                <div class="task-card">
+                    <div class="task-header">
+                        <div class="task-title">
+                            <form method="POST" action="{% url 'tasks:complete_task' task.id %}" style="display: inline;" onsubmit="return confirmComplete(this, event)">
+                                {% csrf_token %}
+                                <button type="submit" class="task-complete-btn" title="Mark as Complete (+1 point)">
+                                    <i class="fas fa-check-circle"></i>
+                                </button>
+                            </form>
+                            <h3>{{ task.title }}</h3>
+                            {% if task.group_task %}
+                            <span class="badge badge-group"><i class="fas fa-users"></i> Group</span>
+                            {% endif %}
+                        </div>
+                        <div class="task-actions">
+                            {% if task.reminder_time %}
+                            <span class="task-time">
+                                <i class="far fa-clock"></i> {{ task.reminder_time|time:"g:i A" }}
+                            </span>
+                            {% endif %}
+                            <a href="{% url 'tasks:view_task' task.id %}" class="btn btn-sm btn-outline">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'tasks:edit_task' task.id %}" class="btn btn-sm btn-outline">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="task-body">
+                        {% if task.description %}
+                        <p>{{ task.description|truncatechars:100 }}</p>
+                        {% else %}
+                        <p class="text-muted">No description</p>
+                        {% endif %}
+                        
+                        {% if task.should_send_reminder and not task.reminder_sent %}
+                        <div class="reminder-alert">
+                            <i class="fas fa-bell"></i>
+                            <span>Reminder due! Complete before day ends.</span>
+                            <a href="{% url 'tasks:dismiss_reminder' task.id task.reminder_token %}" 
+                               class="btn btn-sm">
+                                Dismiss
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="task-footer">
+                        <span class="task-points"><i class="fas fa-star"></i> +1 point on completion</span>
+                        <div class="task-status">
+                            <span class="badge badge-warning">Pending</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-tasks"></i>
+                <h3>No tasks for today</h3>
+                <p>Create your first task to get started!</p>
+                <a href="{% url 'tasks:create_task' %}" class="btn btn-primary">
+                    Create Task
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Upcoming & Overdue -->
+        <div class="dashboard-sidebar">
+            <!-- Upcoming Tasks -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-calendar-alt"></i> Upcoming (7 days)</h3>
+                {% if upcoming_tasks %}
+                <div class="upcoming-list">
+                    {% for task in upcoming_tasks %}
+                    <div class="upcoming-item">
+                        <div class="upcoming-date">{{ task.date|date:"D, M d" }}</div>
+                        <div class="upcoming-title">{{ task.title }}</div>
+                        <a href="{% url 'tasks:set_reminder' task.id %}" class="btn btn-xs" title="Set Reminder">
+                            <i class="far fa-bell"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No upcoming tasks</p>
+                {% endif %}
+            </div>
+            
+            <!-- Overdue Tasks -->
+            {% if overdue_tasks %}
+            <div class="sidebar-section overdue-section">
+                <h3><i class="fas fa-exclamation-triangle"></i> Overdue Tasks</h3>
+                <div class="overdue-list">
+                    {% for task in overdue_tasks %}
+                    <div class="overdue-item">
+                        <div class="overdue-date">{{ task.date|date:"M d" }}</div>
+                        <div class="overdue-title">{{ task.title }}</div>
+                        <a href="{% url 'tasks:complete_task' task.id %}" class="btn btn-xs btn-danger">
+                            Complete
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Quick Stats -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-chart-line"></i> This Week</h3>
+                <a href="{% url 'tasks:weekly_summary' %}" class="btn btn-outline btn-block">
+                    View Weekly Summary
+                </a>
+                <a href="{% url 'tasks:task_calendar' %}" class="btn btn-outline btn-block">
+                    <i class="far fa-calendar"></i> View Calendar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    padding: 2rem 0;
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-light);
+}
+
+.stat-label {
+    color: var(--light);
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+}
+
+.dashboard-section {
+    background: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    color: var(--light);
+}
+
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.task-card {
+    background: var(--dark-3);
+    border: 1px solid var(--dark-3);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.task-card:hover {
+    border-color: var(--primary-light);
+    transform: translateY(-2px);
+}
+
+.task-card.completed {
+    opacity: 0.7;
+    background: var(--dark-2);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.task-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.task-complete-btn {
+    background: transparent;
+    border: 2px solid var(--success);
+    color: var(--success);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+    margin-right: 0.75rem;
+}
+
+.task-complete-btn:hover {
+    background: var(--success);
+    color: white;
+    transform: scale(1.1);
+}
+
+.task-complete-btn i {
+    font-size: 1.1rem;
+}
+
+.task-title h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--light);
+}
+
+.task-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.task-time {
+    color: var(--primary-light);
+    font-size: 0.9rem;
+}
+
+.task-body {
+    margin-bottom: 1rem;
+    color: var(--light);
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+.reminder-alert {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid var(--accent);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.reminder-alert i {
+    color: var(--accent);
+}
+
+.task-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--dark-3);
+}
+
+.task-points {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-group {
+    background: rgba(109, 40, 217, 0.2);
+    color: var(--primary-light);
+}
+
+.badge-success {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+}
+
+.badge-warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--accent);
+}
+
+.dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sidebar-section {
+    background: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.sidebar-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--light);
+}
+
+.upcoming-list, .overdue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.upcoming-item, .overdue-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--dark-3);
+    border-radius: 0.5rem;
+}
+
+.upcoming-date, .overdue-date {
+    font-size: 0.8rem;
+    color: var(--primary-light);
+    min-width: 70px;
+}
+
+.upcoming-title, .overdue-title {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--light);
+}
+
+.overdue-section {
+    border-color: var(--error);
+}
+
+.overdue-section h3 {
+    color: var(--error);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--dark-3);
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: var(--light);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--light);
+    opacity: 0.7;
+    margin-bottom: 1.5rem;
+}
+
+.btn-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.btn-block {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-sidebar {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        display: grid;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+}
+</style>
+
+<script>
+function confirmComplete(form, event) {
+    event.preventDefault();
+    if (confirm('Complete this task? You will earn +1 point!')) {
+        form.submit();
+    }
+    return false;
+}
+</script>
+{% endblock %}

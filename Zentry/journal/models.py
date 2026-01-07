@@ -26,6 +26,8 @@ class JournalEntry(models.Model):
     is_public = models.BooleanField(default=False)
     mood = models.CharField(max_length=20, choices=MOOD_CHOICES, blank=True)
     tags = models.CharField(max_length=500, blank=True, help_text="Comma-separated tags")
+    discovered_words = models.TextField(blank=True, help_text="Comma-separated list of new words discovered")
+    points_earned = models.IntegerField(default=1)  # Points for creating journal
     
     class Meta:
         ordering = ['-date']

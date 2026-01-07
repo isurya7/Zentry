@@ -12,6 +12,8 @@ urlpatterns = [
     path('friend-request/respond/<int:request_id>/', views.respond_friend_request, name='respond_friend_request'),
     path('block-user/<int:user_id>/', views.block_user, name='block_user'),
     path('unblock-user/<int:user_id>/', views.unblock_user, name='unblock_user'),
+    path('remove-friend/<int:user_id>/', views.remove_friend, name='remove_friend'),
+    path('report-user/<int:user_id>/', views.report_user, name='report_user'),
     path('deactivate-account/', views.deactivate_account, name='deactivate_account'),
     path('delete-account/', views.delete_account, name='delete_account'),
 ]

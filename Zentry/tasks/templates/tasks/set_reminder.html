@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Set Reminder - {{ task.title }} - Zentry{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1>Set Reminder</h1>
+        <p>Set when you want to be reminded about this task</p>
+    </div>
+    
+    <div class="form-card">
+        <div class="task-preview">
+            <h3><i class="fas fa-tasks"></i> {{ task.title }}</h3>
+            <p class="task-date">
+                <i class="far fa-calendar"></i> {{ task.date|date:"F d, Y" }}
+            </p>
+            {% if task.description %}
+            <p class="task-description">{{ task.description|truncatewords:20 }}</p>
+            {% endif %}
+        </div>
+        
+        <form method="POST" class="reminder-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.reminder_time.id_for_label }}">
+                    <i class="far fa-clock"></i> Reminder Time
+                </label>
+                {{ form.reminder_time }}
+                {% if form.reminder_time.errors %}
+                <div class="error">{{ form.reminder_time.errors }}</div>
+                {% endif %}
+                <small>Choose the time when you want to receive a reminder for this task</small>
+            </div>
+            
+            <div class="reminder-info">
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>How it works:</strong>
+                        <ul>
+                            <li>You'll receive a reminder at the selected time on the task date</li>
+                            <li>Reminders are sent via email and notifications</li>
+                            <li>You can change this anytime before the task date</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <a href="{% url 'tasks:view_task' task.id %}" class="btn btn-outline">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-bell"></i> Set Reminder
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="form-tips">
+        <h3><i class="fas fa-lightbulb"></i> Tips for effective reminders:</h3>
+        <ul>
+            <li>Set reminders 1-2 hours before you need to start the task</li>
+            <li>Use consistent reminder times to build a routine</li>
+            <li>Consider your daily schedule when choosing reminder times</li>
+            <li>You can always update the reminder time later</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+.form-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form-header h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.form-header p {
+    color: var(--light);
+    opacity: 0.8;
+}
+
+.form-card {
+    background: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.task-preview {
+    background: var(--dark-3);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--primary);
+}
+
+.task-preview h3 {
+    color: var(--light);
+    margin: 0 0 0.75rem 0;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.task-preview h3 i {
+    color: var(--primary-light);
+}
+
+.task-date {
+    color: var(--light);
+    opacity: 0.8;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.task-description {
+    color: var(--light);
+    opacity: 0.9;
+    margin-top: 0.75rem;
+    line-height: 1.6;
+}
+
+.reminder-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--light);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+}
+
+.form-group label i {
+    color: var(--primary-light);
+}
+
+.form-group input[type="time"] {
+    padding: 0.875rem;
+    background: var(--dark-3);
+    border: 1px solid var(--dark-3);
+    border-radius: 0.75rem;
+    color: var(--light);
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 300px;
+}
+
+.form-group input[type="time"]:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+    background: var(--dark-2);
+}
+
+.form-group small {
+    color: var(--light);
+    opacity: 0.7;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.reminder-info {
+    margin: 1rem 0;
+}
+
+.info-box {
+    background: rgba(109, 40, 217, 0.1);
+    border: 1px solid var(--primary);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.info-box i {
+    color: var(--primary-light);
+    font-size: 1.25rem;
+    margin-top: 0.25rem;
+}
+
+.info-box strong {
+    color: var(--light);
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.info-box ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--light);
+    opacity: 0.9;
+}
+
+.info-box li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--dark-3);
+}
+
+.form-tips {
+    background: rgba(109, 40, 217, 0.1);
+    border: 1px solid var(--primary);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.form-tips h3 {
+    color: var(--primary-light);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-tips ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.form-tips li {
+    padding: 0.5rem 0;
+    color: var(--light);
+    opacity: 0.9;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.form-tips li:before {
+    content: "✓";
+    color: var(--success);
+    position: absolute;
+    left: 0;
+}
+
+.error {
+    color: var(--error);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(109, 40, 217, 0.4);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--light);
+    border: 2px solid var(--dark-3);
+}
+
+.btn-outline:hover {
+    border-color: var(--primary-light);
+    color: var(--primary-light);
+    background: rgba(109, 40, 217, 0.1);
+}
+
+@media (max-width: 768px) {
+    .form-container {
+        padding: 1rem;
+    }
+    
+    .form-card {
+        padding: 1.5rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+

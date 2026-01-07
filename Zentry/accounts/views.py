@@ -175,11 +175,23 @@ def send_friend_request(request, user_id):
                 existing_request.status = 'accepted'
                 existing_request.save()
                 
-                # Add each other as friends
-                from_user_profile.friends.add(to_user_profile)
-                to_user_profile.friends.add(from_user_profile)
-                
-                return JsonResponse({'success': 'Friend request accepted automatically'})
+            # Add each other as friends
+            from_user_profile.friends.add(to_user_profile)
+            to_user_profile.friends.add(from_user_profile)
+            
+            # Create notification
+            try:
+                Notification.objects.create(
+                    recipient=to_user_profile.user,
+                    title=f"{from_user_profile.user.username} accepted your friend request",
+                    message=f"You are now friends with {from_user_profile.user.username}!",
+                    notification_type='friend_request',
+                    link='/accounts/profile/'
+                )
+            except:
+                pass
+            
+            return JsonResponse({'success': 'Friend request accepted automatically'})
             
             # Create friend request
             FriendRequest.objects.create(
@@ -187,6 +199,18 @@ def send_friend_request(request, user_id):
                 to_user=to_user_profile,
                 status='pending'
             )
+            
+            # Create notification
+            try:
+                Notification.objects.create(
+                    recipient=to_user_profile.user,
+                    title=f"{from_user_profile.user.username} sent you a friend request",
+                    message=f"{from_user_profile.user.username} wants to be your friend",
+                    notification_type='friend_request',
+                    link='/accounts/profile/'
+                )
+            except:
+                pass
             
             return JsonResponse({'success': 'Friend request sent'})
         except User.DoesNotExist:
@@ -209,6 +233,19 @@ def respond_friend_request(request, request_id):
                 # Add each other as friends
                 friend_request.from_user.friends.add(friend_request.to_user)
                 friend_request.to_user.friends.add(friend_request.from_user)
+                
+                # Create notification
+                try:
+                    Notification.objects.create(
+                        recipient=friend_request.from_user.user,
+                        title=f"{friend_request.to_user.user.username} accepted your friend request",
+                        message=f"You are now friends with {friend_request.to_user.user.username}!",
+                        notification_type='friend_request',
+                        link='/accounts/profile/'
+                    )
+                except:
+                    pass
+                
                 return JsonResponse({'success': 'Friend request accepted'})
             elif action == 'reject':
                 friend_request.status = 'rejected'
@@ -282,6 +319,59 @@ def unblock_user(request, user_id):
             return JsonResponse({'error': 'User profile not found'}, status=404)
     
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@login_required
+def remove_friend(request, user_id):
+    """Remove a friend"""
+    if request.method == 'POST':
+        try:
+            friend = User.objects.get(id=user_id)
+            friend_profile = friend.userprofile
+            current_user_profile = request.user.userprofile
+            
+            # Remove from friends
+            if friend_profile in current_user_profile.friends.all():
+                current_user_profile.friends.remove(friend_profile)
+                friend_profile.friends.remove(current_user_profile)
+                return JsonResponse({'success': 'Friend removed successfully'})
+            else:
+                return JsonResponse({'error': 'User is not your friend'}, status=400)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@login_required
+def report_user(request, user_id):
+    """Report a user for inappropriate behavior"""
+    from social.models import UserReport
+    
+    if request.method == 'POST':
+        try:
+            reported_user = User.objects.get(id=user_id)
+            reason = request.POST.get('reason', '')
+            description = request.POST.get('description', '')
+            
+            if reason and description:
+                UserReport.objects.create(
+                    reporter=request.user,
+                    reported_user=reported_user,
+                    reason=reason,
+                    description=description
+                )
+                messages.success(request, 'User reported. Thank you for keeping the community safe.')
+                return redirect('accounts:profile')
+            else:
+                messages.error(request, 'Please provide a reason and description.')
+        except User.DoesNotExist:
+            messages.error(request, 'User not found.')
+            return redirect('accounts:profile')
+    
+    reported_user = get_object_or_404(User, id=user_id)
+    return render(request, 'accounts/report_user.html', {
+        'reported_user': reported_user,
+        'title': 'Report User'
+    })
 
 @login_required
 def deactivate_account(request):

@@ -1,9 +1,11 @@
 from django.urls import path
 from . import views
 
+app_name = 'notifications'
+
 urlpatterns = [
-    path('', views.list_notifications, name='list_notifications'),
-    path('<int:notif_id>/', views.view_notification, name='view_notification'),
-    path('<int:notif_id>/mark-read/', views.mark_as_read, name='mark_notification_read'),
-    path('<int:notif_id>/delete/', views.delete_notification, name='delete_notification'),
+    path('', views.notifications_list, name='list'),
+    path('api/', views.get_notifications, name='get_notifications'),
+    path('<int:notification_id>/read/', views.mark_read, name='mark_read'),
+    path('read-all/', views.mark_all_read, name='mark_all_read'),
 ]

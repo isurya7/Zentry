@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .email-body {
+            padding: 40px;
+            color: #334155;
+        }
+        .task-card {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+            border-left: 4px solid #6d28d9;
+        }
+        .btn {
+            display: inline-block;
+            background: #6d28d9;
+            color: white;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .btn:hover {
+            background: #8b5cf6;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>⏰ Task Reminder</h1>
+            <p>Don't forget to complete your task before the day ends!</p>
+        </div>
+        <div class="email-body">
+            <h2>Hello {{ user.username }},</h2>
+            <p>This is a reminder about your upcoming task:</p>
+            
+            <div class="task-card">
+                <h3>{{ task.title }}</h3>
+                <p>{{ task.description|truncatechars:200 }}</p>
+                <p><strong>Due Date:</strong> {{ task.date|date:"F d, Y" }}</p>
+                <p><strong>Points:</strong> {{ task.points }}</p>
+            </div>
+            
+            <a href="http://{{ domain }}{% url 'tasks:view_task' task.id %}" class="btn">
+                View Task
+            </a>
+            
+            <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
+                You can change your reminder settings in your task preferences.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

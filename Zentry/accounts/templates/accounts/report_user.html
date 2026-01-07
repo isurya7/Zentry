@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Report User - Zentry{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1>Report User</h1>
+        <p>Help us keep the community safe by reporting inappropriate behavior</p>
+    </div>
+    
+    <div class="form-card">
+        <div class="user-info">
+            <h3>Reporting: {{ reported_user.username }}</h3>
+        </div>
+        
+        <form method="POST" class="report-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="reason">Reason for Report *</label>
+                <select name="reason" id="reason" class="form-control" required>
+                    <option value="">Select a reason</option>
+                    <option value="harassment">Harassment or Bullying</option>
+                    <option value="spam">Spam or Scam</option>
+                    <option value="inappropriate">Inappropriate Content</option>
+                    <option value="fake">Fake Account</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description *</label>
+                <textarea name="description" id="description" class="form-control" rows="5" required placeholder="Please provide details about why you are reporting this user..."></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <a href="{% url 'accounts:profile' %}" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-danger">Submit Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form-header h1 {
+    font-size: 2rem;
+    background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.form-card {
+    background: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    border-radius: 1rem;
+    padding: 2rem;
+}
+
+.user-info {
+    background: var(--dark-3);
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.user-info h3 {
+    color: var(--light);
+    margin: 0;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    color: var(--light);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--dark-3);
+    border: 1px solid var(--dark-3);
+    border-radius: 0.5rem;
+    color: var(--light);
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-light);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--light);
+    border: 2px solid var(--dark-3);
+}
+
+.btn-danger {
+    background: var(--error);
+    color: white;
+}
+</style>
+{% endblock %}
+

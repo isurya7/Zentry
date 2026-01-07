@@ -1,11 +1,12 @@
 from django.urls import path
 from . import views
 
+app_name = 'messaging'
+
 urlpatterns = [
-    path('rooms/', views.chat_rooms, name='chat_rooms'),
-    path('rooms/create/', views.create_room, name='create_room'),
-    path('rooms/<int:room_id>/', views.view_room, name='view_room'),
-    path('rooms/<int:room_id>/send/', views.send_message, name='send_message'),
-    path('rooms/<int:room_id>/join/', views.join_room, name='join_room'),     # optional
-    path('rooms/<int:room_id>/leave/', views.leave_room, name='leave_room'),  # optional
+    path('', views.conversation_list, name='conversations'),
+    path('conversation/<int:conversation_id>/', views.view_conversation, name='conversation'),
+    path('start/<int:user_id>/', views.start_conversation, name='start_conversation'),
+    path('conversation/<int:conversation_id>/send/', views.send_message, name='send_message'),
+    path('conversation/<int:conversation_id>/messages/', views.get_messages, name='get_messages'),
 ]

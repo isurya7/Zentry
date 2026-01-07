@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .notifications-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+    
+    .notifications-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid var(--dark-3);
+    }
+    
+    .notifications-header h1 {
+        font-size: 2.2rem;
+        color: var(--primary-light);
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0;
+    }
+    
+    .mark-all-read-btn {
+        background: var(--primary);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .mark-all-read-btn:hover {
+        background: var(--primary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(109, 40, 217, 0.4);
+    }
+    
+    .notifications-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .notification-item {
+        background: var(--dark-2);
+        border-radius: 0.875rem;
+        padding: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1.25rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        color: var(--light);
+    }
+    
+    .notification-item:hover {
+        background: var(--dark-3);
+        border-color: var(--primary);
+        transform: translateX(5px);
+    }
+    
+    .notification-item.unread {
+        background: rgba(109, 40, 217, 0.1);
+        border-color: var(--primary);
+    }
+    
+    .notification-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--dark-3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-light);
+        flex-shrink: 0;
+        font-size: 1.2rem;
+    }
+    
+    .notification-item.unread .notification-icon {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .notification-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .notification-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 0.5rem;
+    }
+    
+    .notification-message {
+        font-size: 0.95rem;
+        color: var(--light);
+        opacity: 0.85;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+    }
+    
+    .notification-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: var(--light);
+        opacity: 0.6;
+    }
+    
+    .notification-time {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .notification-type-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .notification-type-task_reminder {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--accent);
+    }
+    
+    .notification-type-streak_warning {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--error);
+    }
+    
+    .notification-type-friend_request {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--success);
+    }
+    
+    .notification-type-message {
+        background: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+    }
+    
+    .notification-type-achievement {
+        background: rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+    }
+    
+    .notification-type-points {
+        background: rgba(139, 92, 246, 0.2);
+        color: var(--primary-light);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .empty-state i {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        color: var(--primary-light);
+        opacity: 0.4;
+    }
+    
+    .empty-state h2 {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+        color: var(--light);
+        font-weight: 600;
+    }
+    
+    .empty-state p {
+        font-size: 1.05rem;
+        opacity: 0.8;
+        line-height: 1.6;
+    }
+    
+    @media (max-width: 768px) {
+        .notifications-container {
+            padding: 0 1rem;
+        }
+        
+        .notifications-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1.25rem;
+        }
+        
+        .notification-item {
+            padding: 1.25rem;
+        }
+        
+        .notification-icon {
+            width: 44px;
+            height: 44px;
+            font-size: 1.1rem;
+        }
+    }
+</style>
+
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h1><i class="fas fa-bell"></i> Notifications</h1>
+        {% if notifications %}
+        <form method="POST" action="{% url 'notifications:mark_all_as_read' %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="mark-all-read-btn">
+                <i class="fas fa-check-double"></i> Mark All as Read
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    
+    {% if notifications %}
+    <div class="notifications-list">
+        {% for notification in notifications %}
+        <a href="{% if notification.link %}{{ notification.link }}{% else %}#{% endif %}" 
+           class="notification-item {% if not notification.is_read %}unread{% endif %}" 
+           data-id="{{ notification.id }}">
+            <div class="notification-icon">
+                {% if notification.notification_type == 'task_reminder' %}
+                <i class="fas fa-tasks"></i>
+                {% elif notification.notification_type == 'streak_warning' %}
+                <i class="fas fa-fire"></i>
+                {% elif notification.notification_type == 'friend_request' %}
+                <i class="fas fa-user-plus"></i>
+                {% elif notification.notification_type == 'message' %}
+                <i class="fas fa-envelope"></i>
+                {% elif notification.notification_type == 'achievement' %}
+                <i class="fas fa-trophy"></i>
+                {% elif notification.notification_type == 'points' %}
+                <i class="fas fa-star"></i>
+                {% else %}
+                <i class="fas fa-bell"></i>
+                {% endif %}
+            </div>
+            <div class="notification-content">
+                <div class="notification-title">{{ notification.title }}</div>
+                <div class="notification-message">{{ notification.message }}</div>
+                <div class="notification-meta">
+                    <div class="notification-time">
+                        <i class="fas fa-clock"></i>
+                        {{ notification.timestamp|timesince }} ago
+                    </div>
+                    {% if notification.notification_type %}
+                    {% if notification.notification_type %}
+                    <span class="notification-type-badge notification-type-{{ notification.notification_type }}">
+                        {{ notification.get_notification_type_display }}
+                    </span>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-bell-slash"></i>
+        <h2>No notifications</h2>
+        <p>You're all caught up! New notifications will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Mark notification as read when clicked
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            const notificationId = this.dataset.id;
+            if (notificationId) {
+                fetch(`/notifications/mark-as-read/${notificationId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    },
+                }).catch(err => console.error('Error marking notification as read:', err));
+            }
+        });
+    });
+</script>
+{% endblock %}
+
