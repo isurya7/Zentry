@@ -175,10 +175,10 @@ def send_friend_request(request, user_id):
                 existing_request.status = 'accepted'
                 existing_request.save()
                 
-            # Add each other as friends
-            from_user_profile.friends.add(to_user_profile)
-            to_user_profile.friends.add(from_user_profile)
-            
+                # Add each other as friends
+                from_user_profile.friends.add(to_user_profile)
+                to_user_profile.friends.add(from_user_profile)
+                
             # Create notification
             try:
                 Notification.objects.create(
@@ -191,7 +191,7 @@ def send_friend_request(request, user_id):
             except:
                 pass
             
-            return JsonResponse({'success': 'Friend request accepted automatically'})
+                return JsonResponse({'success': 'Friend request accepted automatically'})
             
             # Create friend request
             FriendRequest.objects.create(

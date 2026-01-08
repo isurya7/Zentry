@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Achieve {{ vision.title }} - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .confirm-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .confirm-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        border: 2px solid var(--success);
+        text-align: center;
+    }
+    
+    .confirm-icon {
+        font-size: 5rem;
+        color: var(--success);
+        margin-bottom: 1.5rem;
+    }
+    
+    .confirm-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--light);
+        margin-bottom: 1rem;
+        background: linear-gradient(to right, #10b981, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .confirm-message {
+        color: var(--light);
+        opacity: 0.9;
+        line-height: 1.8;
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+    
+    .vision-info {
+        background-color: var(--dark-3);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: left;
+    }
+    
+    .vision-info h3 {
+        color: var(--primary-light);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .vision-info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--dark-2);
+    }
+    
+    .vision-info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .vision-info-label {
+        color: var(--light);
+        opacity: 0.8;
+    }
+    
+    .vision-info-value {
+        color: var(--light);
+        font-weight: 600;
+    }
+    
+    .points-highlight {
+        color: var(--accent);
+        font-size: 1.3rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+    
+    .confirm-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn-danger {
+        background-color: var(--dark-3);
+        color: var(--light);
+    }
+    
+    .btn-danger:hover {
+        background-color: var(--dark-2);
+    }
+    
+    .btn-success {
+        background-color: var(--success);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background-color: #059669;
+    }
+</style>
+
+<div class="confirm-container">
+    <div class="confirm-card">
+        <div class="confirm-icon">
+            <i class="fas fa-trophy"></i>
+        </div>
+        
+        <h1 class="confirm-title">Congratulations!</h1>
+        
+        <p class="confirm-message">
+            You've completed all checkpoints for this vision board! Mark it as achieved to earn <strong style="color: var(--accent);">{{ vision.points }} points</strong>.
+        </p>
+        
+        <div class="vision-info">
+            <h3><i class="fas fa-bullseye"></i> {{ vision.title }}</h3>
+            <div class="vision-info-item">
+                <span class="vision-info-label">Total Checkpoints</span>
+                <span class="vision-info-value">{{ vision.checkpoints.count }}</span>
+            </div>
+            <div class="vision-info-item">
+                <span class="vision-info-label">Completed Checkpoints</span>
+                <span class="vision-info-value">{{ completed_count }}/{{ total_count }}</span>
+            </div>
+            <div class="vision-info-item">
+                <span class="vision-info-label">Points to Earn</span>
+                <span class="vision-info-value points-highlight">
+                    <i class="fas fa-star"></i> {{ vision.points }} points
+                </span>
+            </div>
+        </div>
+        
+        <form method="post" style="display: contents;">
+            {% csrf_token %}
+            <div class="confirm-actions">
+                <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                    <i class="fas fa-check-circle"></i> Mark as Achieved
+                </button>
+                <a href="{% url 'visionboard:view_vision' vision.id %}" class="btn btn-danger">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

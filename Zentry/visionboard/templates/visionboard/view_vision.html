@@ -1,0 +1,532 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ vision.title }} - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .vision-detail-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .vision-header {
+        margin-bottom: 2rem;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-light);
+        text-decoration: none;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .back-link:hover {
+        color: var(--primary);
+    }
+    
+    .vision-hero {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 1px solid var(--dark-3);
+        margin-bottom: 2rem;
+    }
+    
+    .vision-cover-hero {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    }
+    
+    .vision-hero-content {
+        padding: 2rem;
+    }
+    
+    .vision-title-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .vision-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+    }
+    
+    .vision-meta-badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .badge-status-draft {
+        background-color: rgba(148, 163, 184, 0.2);
+        color: #94a3b8;
+    }
+    
+    .badge-status-active {
+        background-color: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+    }
+    
+    .badge-status-achieved {
+        background-color: rgba(16, 185, 129, 0.2);
+        color: var(--success);
+    }
+    
+    .badge-points {
+        background-color: rgba(245, 158, 11, 0.2);
+        color: var(--accent);
+    }
+    
+    .badge-public {
+        background-color: rgba(139, 92, 246, 0.2);
+        color: var(--primary-light);
+    }
+    
+    .badge-private {
+        background-color: rgba(148, 163, 184, 0.2);
+        color: #94a3b8;
+    }
+    
+    .vision-description {
+        color: var(--light);
+        opacity: 0.9;
+        line-height: 1.8;
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        background-color: var(--dark-3);
+        border-radius: 0.5rem;
+        border-left: 4px solid var(--primary);
+    }
+    
+    .vision-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .progress-section {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--dark-3);
+        margin-bottom: 2rem;
+    }
+    
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .progress-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .progress-bar-container {
+        background-color: var(--dark-3);
+        border-radius: 1rem;
+        height: 30px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .checkpoints-section {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .checkpoints-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .checkpoint-item {
+        background-color: var(--dark-3);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 2px solid var(--dark-2);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .checkpoint-item:hover {
+        border-color: var(--primary);
+        transform: translateX(5px);
+    }
+    
+    .checkpoint-item.completed {
+        background-color: rgba(16, 185, 129, 0.1);
+        border-color: var(--success);
+    }
+    
+    .checkpoint-checkbox {
+        width: 28px;
+        height: 28px;
+        border-radius: 0.5rem;
+        border: 2px solid var(--primary-light);
+        background-color: var(--dark-2);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        margin-top: 0.2rem;
+    }
+    
+    .checkpoint-checkbox:hover {
+        border-color: var(--primary);
+        background-color: var(--dark-3);
+    }
+    
+    .checkpoint-checkbox.completed {
+        background-color: var(--success);
+        border-color: var(--success);
+        color: white;
+    }
+    
+    .checkpoint-content {
+        flex: 1;
+    }
+    
+    .checkpoint-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 0.5rem;
+    }
+    
+    .checkpoint-item.completed .checkpoint-title {
+        text-decoration: line-through;
+        opacity: 0.7;
+    }
+    
+    .checkpoint-description {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+    }
+    
+    .checkpoint-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .empty-checkpoints {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .empty-checkpoints i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .achievement-actions {
+        background-color: rgba(16, 185, 129, 0.1);
+        border: 2px solid var(--success);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .achievement-actions h3 {
+        color: var(--success);
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+    
+    .achievement-actions p {
+        color: var(--light);
+        opacity: 0.9;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="vision-detail-container">
+    <div class="vision-header">
+        <a href="{% url 'visionboard:vision_list' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Vision Boards
+        </a>
+    </div>
+    
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-4">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="vision-hero">
+        {% if vision.cover_image %}
+        <img src="{{ vision.cover_image.url }}" alt="{{ vision.title }}" class="vision-cover-hero">
+        {% else %}
+        <div class="vision-cover-hero" style="display: flex; align-items: center; justify-content: center; color: white; font-size: 5rem;">
+            <i class="fas fa-bullseye"></i>
+        </div>
+        {% endif %}
+        
+        <div class="vision-hero-content">
+            <div class="vision-title-section">
+                <h1 class="vision-title">{{ vision.title }}</h1>
+                <div class="vision-meta-badges">
+                    <span class="badge badge-status-{{ vision.status }}">
+                        {% if vision.status == 'draft' %}<i class="fas fa-edit"></i> Draft
+                        {% elif vision.status == 'active' %}<i class="fas fa-rocket"></i> Active
+                        {% else %}<i class="fas fa-trophy"></i> Achieved
+                        {% endif %}
+                    </span>
+                    <span class="badge badge-points">
+                        <i class="fas fa-star"></i> {{ vision.points }} points
+                    </span>
+                    {% if vision.is_public %}
+                    <span class="badge badge-public">
+                        <i class="fas fa-globe"></i> Public
+                    </span>
+                    {% else %}
+                    <span class="badge badge-private">
+                        <i class="fas fa-lock"></i> Private
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="vision-description">
+                {{ vision.description|linebreaks }}
+            </div>
+            
+            {% if is_owner %}
+            <div class="vision-actions">
+                {% if vision.status != 'achieved' %}
+                <a href="{% url 'visionboard:edit_vision' vision.id %}" class="btn btn-outline">
+                    <i class="fas fa-edit"></i> Edit Vision
+                </a>
+                <a href="{% url 'visionboard:add_checkpoint' vision.id %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Checkpoint
+                </a>
+                {% endif %}
+                {% if vision.status == 'achieved' %}
+                <a href="{% url 'visionboard:post_to_feed' vision.id %}" class="btn btn-primary">
+                    <i class="fas fa-share"></i> Post to Feed
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            {% if vision.status == 'achieved' and vision.achieved_at %}
+            <div style="margin-top: 1.5rem; padding: 1rem; background-color: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; border-left: 4px solid var(--success);">
+                <strong style="color: var(--success);">
+                    <i class="fas fa-trophy"></i> Achieved on {{ vision.achieved_at|date:"F d, Y" }}
+                </strong>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="progress-section">
+        <div class="progress-header">
+            <h2 class="progress-title">
+                <i class="fas fa-tasks"></i> Progress
+            </h2>
+            <span style="color: var(--light); font-weight: 600; font-size: 1.2rem;">
+                {{ progress }}% Complete
+            </span>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" style="width: {{ progress }}%;">
+                {% if progress > 0 %}{{ progress }}%{% endif %}
+            </div>
+        </div>
+        <p style="color: var(--light); opacity: 0.7; margin: 0;">
+            {{ checkpoints|length }} checkpoint{{ checkpoints|length|pluralize }} total
+            {% if checkpoints %}
+            - {{ checkpoints|length|add:"-1"|floatformat:0 }} remaining
+            {% endif %}
+        </p>
+    </div>
+    
+    {% if can_achieve %}
+    <div class="achievement-actions">
+        <h3><i class="fas fa-trophy"></i> All Checkpoints Completed!</h3>
+        <p>Congratulations! You've completed all checkpoints. You can now mark this vision board as achieved and earn {{ vision.points }} points!</p>
+        <a href="{% url 'visionboard:achieve_vision' vision.id %}" class="btn btn-primary" style="background-color: var(--success); border-color: var(--success);">
+            <i class="fas fa-check-circle"></i> Mark as Achieved
+        </a>
+    </div>
+    {% endif %}
+    
+    <div class="checkpoints-section">
+        <div class="checkpoints-header">
+            <h2 class="progress-title">
+                <i class="fas fa-map-marked-alt"></i> Roadmap
+            </h2>
+        </div>
+        
+        {% if checkpoints %}
+        {% for checkpoint in checkpoints %}
+        <div class="checkpoint-item {% if checkpoint.completed %}completed{% endif %}">
+            {% if is_owner and vision.status != 'achieved' %}
+            <form method="POST" action="{% url 'visionboard:mark_checkpoint_complete' checkpoint.id %}" class="checkpoint-form" style="display: contents;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="{% if checkpoint.completed %}incomplete{% else %}complete{% endif %}">
+                <button type="submit" class="checkpoint-checkbox {% if checkpoint.completed %}completed{% endif %}" style="border: none; background: none; padding: 0;">
+                    {% if checkpoint.completed %}
+                    <i class="fas fa-check"></i>
+                    {% endif %}
+                </button>
+            </form>
+            {% else %}
+            <div class="checkpoint-checkbox {% if checkpoint.completed %}completed{% endif %}">
+                {% if checkpoint.completed %}
+                <i class="fas fa-check"></i>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="checkpoint-content">
+                <h3 class="checkpoint-title">{{ checkpoint.title }}</h3>
+                {% if checkpoint.description %}
+                <p class="checkpoint-description">{{ checkpoint.description|linebreaks }}</p>
+                {% endif %}
+                {% if checkpoint.completed and checkpoint.completed_at %}
+                <div class="checkpoint-meta">
+                    <i class="fas fa-check-circle"></i>
+                    Completed on {{ checkpoint.completed_at|date:"F d, Y" }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-checkpoints">
+            <i class="fas fa-map-marked-alt"></i>
+            <h3>No checkpoints yet</h3>
+            <p>Add checkpoints to create a roadmap for achieving your vision.</p>
+            {% if is_owner and vision.status != 'achieved' %}
+            <a href="{% url 'visionboard:add_checkpoint' vision.id %}" class="btn btn-primary" style="margin-top: 1rem;">
+                <i class="fas fa-plus"></i> Add First Checkpoint
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Auto-refresh progress after checkpoint completion
+    document.querySelectorAll('.checkpoint-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const checkpointItem = this.closest('.checkpoint-item');
+            const checkbox = this.querySelector('.checkpoint-checkbox');
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.completed) {
+                        checkpointItem.classList.add('completed');
+                        checkbox.classList.add('completed');
+                        checkbox.innerHTML = '<i class="fas fa-check"></i>';
+                    } else {
+                        checkpointItem.classList.remove('completed');
+                        checkbox.classList.remove('completed');
+                        checkbox.innerHTML = '';
+                    }
+                    
+                    // Update progress bar
+                    document.querySelector('.progress-bar').style.width = data.progress + '%';
+                    document.querySelector('.progress-bar').textContent = data.progress + '%';
+                    document.querySelector('.progress-header span').textContent = data.progress + '% Complete';
+                    
+                    // Check if all completed and show achievement button
+                    if (data.all_completed) {
+                        location.reload(); // Reload to show achievement button
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    });
+</script>
+{% endblock %}
+

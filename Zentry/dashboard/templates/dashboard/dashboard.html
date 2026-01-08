@@ -741,7 +741,7 @@
                 <span class="notification-badge">{{ stats.pending_tasks_count }}</span>
                 {% endif %}
             </a>
-            <a href="#" class="nav-item">
+            <a href="{% url 'visionboard:vision_list' %}" class="nav-item">
                 <i class="fas fa-clipboard-list"></i>
                 <span>Vision Board</span>
             </a>
@@ -813,6 +813,15 @@
                 </div>
             </div>
         </div>
+
+        {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
         
         <!-- Leaderboard -->
         <div class="content-section">

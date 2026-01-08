@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit {{ vision.title }} - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .form-header {
+        margin-bottom: 2rem;
+    }
+    
+    .form-header h1 {
+        font-size: 2.2rem;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-header p {
+        color: var(--light);
+        opacity: 0.8;
+    }
+    
+    .form-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--light);
+        font-weight: 600;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: var(--dark-3);
+        border: 1px solid var(--dark-2);
+        border-radius: 0.5rem;
+        color: var(--light);
+        font-family: inherit;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    
+    .form-check-label {
+        margin: 0;
+        cursor: pointer;
+        color: var(--light);
+    }
+    
+    .form-help {
+        font-size: 0.85rem;
+        color: var(--light);
+        opacity: 0.7;
+        margin-top: 0.5rem;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--dark-3);
+    }
+    
+    .btn-secondary {
+        background-color: var(--dark-3);
+        color: var(--light);
+    }
+    
+    .btn-secondary:hover {
+        background-color: var(--dark-2);
+    }
+    
+    .image-preview {
+        margin-top: 1rem;
+        max-width: 300px;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        border: 2px solid var(--dark-3);
+    }
+    
+    .image-preview img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    
+    .current-image {
+        margin-top: 1rem;
+        max-width: 300px;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        border: 2px solid var(--dark-3);
+    }
+    
+    .current-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-header">
+        <h1><i class="fas fa-edit"></i> Edit Vision Board</h1>
+        <p>Update your vision board details. Note: Vision boards cannot be deleted, but can be achieved.</p>
+    </div>
+    
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-4">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="form-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                {{ form.title }}
+                {% if form.title.help_text %}
+                <p class="form-help">{{ form.title.help_text }}</p>
+                {% endif %}
+                {% if form.title.errors %}
+                <div class="error-message">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                {{ form.description }}
+                {% if form.description.help_text %}
+                <p class="form-help">{{ form.description.help_text }}</p>
+                {% endif %}
+                {% if form.description.errors %}
+                <div class="error-message">{{ form.description.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.cover_image.id_for_label }}">{{ form.cover_image.label }}</label>
+                {% if vision.cover_image %}
+                <div class="current-image">
+                    <p style="margin-bottom: 0.5rem; color: var(--light); opacity: 0.8;">Current image:</p>
+                    <img src="{{ vision.cover_image.url }}" alt="Current cover image">
+                </div>
+                <p class="form-help">Select a new image to replace the current one.</p>
+                {% endif %}
+                {{ form.cover_image }}
+                {% if form.cover_image.help_text %}
+                <p class="form-help">{{ form.cover_image.help_text }}</p>
+                {% endif %}
+                {% if form.cover_image.errors %}
+                <div class="error-message">{{ form.cover_image.errors }}</div>
+                {% endif %}
+                <div id="imagePreview" class="image-preview" style="display: none;">
+                    <p style="margin-bottom: 0.5rem; color: var(--light); opacity: 0.8;">New image preview:</p>
+                    <img id="previewImg" src="" alt="Preview">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.points.id_for_label }}">{{ form.points.label }}</label>
+                {{ form.points }}
+                {% if form.points.help_text %}
+                <p class="form-help">{{ form.points.help_text }}</p>
+                {% endif %}
+                {% if form.points.errors %}
+                <div class="error-message">{{ form.points.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <div class="form-check">
+                    {{ form.is_public }}
+                    <label class="form-check-label" for="{{ form.is_public.id_for_label }}">
+                        {{ form.is_public.label }}
+                    </label>
+                </div>
+                {% if form.is_public.errors %}
+                <div class="error-message">{{ form.is_public.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a href="{% url 'visionboard:view_vision' vision.id %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Image preview
+    document.getElementById('id_cover_image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            document.getElementById('imagePreview').style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}
+

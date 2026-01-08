@@ -53,3 +53,4 @@ class UserReport(models.Model):
         unique_together = ['reporter', 'reported_user']
         ordering = ['-created_at']
 
+

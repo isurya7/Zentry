@@ -211,15 +211,6 @@
         {{ notes|length }} note{{ notes|pluralize }} found
     </div>
     
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-    
     {% if notes %}
         <div class="notes-grid">
             {% for note in notes %}
