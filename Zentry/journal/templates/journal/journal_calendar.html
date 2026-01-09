@@ -1,176 +1,408 @@
 {% extends 'base.html' %}
 
-{% block journal_content %}
-<div class="calendar-header">
-    <div class="d-flex justify-content-between align-items-center mb-6">
-        <div>
-            <h1 class="gradient-text">Journal Calendar</h1>
-            <p class="text-light opacity-80">Browse your entries by date</p>
-        </div>
-        <div class="calendar-nav">
-            <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline">
-                <i class="fas fa-chevron-left"></i> Prev
-            </a>
-            <span class="calendar-month">{{ month|date:"F Y" }}</span>
-            <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline">
-                Next <i class="fas fa-chevron-right"></i>
-            </a>
-        </div>
-    </div>
-</div>
+{% block title %}Journal Calendar | Zentry{% endblock %}
 
-<div class="calendar-container">
-    <div class="calendar-grid">
-        <!-- Weekday headers -->
-        <div class="calendar-weekday">Sun</div>
-        <div class="calendar-weekday">Mon</div>
-        <div class="calendar-weekday">Tue</div>
-        <div class="calendar-weekday">Wed</div>
-        <div class="calendar-weekday">Thu</div>
-        <div class="calendar-weekday">Fri</div>
-        <div class="calendar-weekday">Sat</div>
-
-        <!-- Calendar days -->
-        {% for day in days %}
-        <div class="calendar-day {% if day in entries_by_date %}has-entry{% endif %}">
-            <div class="day-number">{{ day }}</div>
-            {% if day in entries_by_date %}
-            <div class="day-entry">
-                <a href="{% url 'journal:view_journal' entries_by_date.day.id %}" 
-                   class="entry-preview" 
-                   title="{{ entries_by_date.day.title }}">
-                    📖
-                </a>
+{% block content %}
+<div class="journal-app">
+    <div class="container">
+        <!-- Header -->
+        <header class="journal-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="header-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        Journal Calendar
+                    </h1>
+                    <p class="header-subtitle">
+                        Browse your entries by date
+                    </p>
+                </div>
+                <div class="header-right">
+                    <a href="{% url 'journal:journal_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Journal
+                    </a>
+                </div>
             </div>
-            {% endif %}
-        </div>
-        {% endfor %}
-    </div>
-</div>
+        </header>
 
-<!-- Legend -->
-<div class="calendar-legend">
-    <div class="legend-item">
-        <div class="legend-color has-entry"></div>
-        <span>Has journal entry</span>
+        <!-- Calendar Navigation -->
+        <div class="calendar-navigation">
+            <a href="?year={{ prev_year }}&month={{ prev_month }}" class="nav-btn">
+                <i class="fas fa-chevron-left"></i>
+                Previous
+            </a>
+            
+            <div class="current-month">
+                <span class="month-name">{{ month|date:"F" }}</span>
+                <span class="year-number">{{ year }}</span>
+            </div>
+            
+            <a href="?year={{ next_year }}&month={{ next_month }}" class="nav-btn">
+                Next
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="calendar-container">
+            <!-- Weekday Headers -->
+            <div class="calendar-weekdays">
+                <div class="weekday">Sunday</div>
+                <div class="weekday">Monday</div>
+                <div class="weekday">Tuesday</div>
+                <div class="weekday">Wednesday</div>
+                <div class="weekday">Thursday</div>
+                <div class="weekday">Friday</div>
+                <div class="weekday">Saturday</div>
+            </div>
+
+            <!-- Calendar Days -->
+            <div class="calendar-grid">
+                <!-- Empty cells for days before the first day of month -->
+                {% for i in "123456"|make_list %}
+                    {% if forloop.counter < first_weekday %}
+                        <div class="calendar-day empty"></div>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Actual days of the month -->
+                {% for day in days %}
+                    <div class="calendar-day {% if day in entries_by_date %}has-entry{% endif %}">
+                        <div class="day-header">
+                            <span class="day-number">{{ day }}</span>
+                            {% if day == today.day and month == today.month and year == today.year %}
+                                <span class="today-badge">Today</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if day in entries_by_date %}
+                            {% with entry=entries_by_date.day %}
+                            <div class="day-content">
+                                <a href="{% url 'journal:view_journal' entry.id %}" class="entry-link">
+                                    <div class="entry-preview">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    <div class="entry-info">
+                                        <span class="entry-title">{{ entry.title|truncatechars:20 }}</span>
+                                        {% if entry.mood %}
+                                        <span class="mood-indicator mood-{{ entry.mood|lower }}">
+                                            {{ entry.get_mood_display }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            </div>
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="calendar-legend">
+            <div class="legend-item">
+                <div class="legend-indicator today"></div>
+                <span>Today</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-indicator has-entry"></div>
+                <span>Has Journal Entry</span>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="calendar-stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-content">
+                    {% with entries_count=entries_by_date.keys|length %}
+                    <span class="stat-number">{{ entries_count }}</span>
+                    <span class="stat-title">Days with Entries</span>
+                    <span class="stat-subtitle">
+                        {{ entries_count }} of {{ days|length }} days this month
+                    </span>
+                    {% endwith %}
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ current_streak }}</span>
+                    <span class="stat-title">Current Streak</span>
+                    <span class="stat-subtitle">
+                        {% if has_journal_today %}
+                        <i class="fas fa-check-circle"></i> On track
+                        {% else %}
+                        <i class="fas fa-clock"></i> Write today to continue
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-    .calendar-nav {
+    /* Calendar Specific Styles */
+    .calendar-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1rem 1.5rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+    }
+    
+    .nav-btn {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all var(--transition-base);
     }
-
-    .calendar-month {
-        font-weight: 600;
-        color: var(--light);
-        min-width: 120px;
-        text-align: center;
+    
+    .nav-btn:hover {
+        background: rgba(99, 102, 241, 0.05);
+        border-color: var(--border-hover);
+        color: var(--primary);
+        transform: translateY(-1px);
     }
-
+    
+    .current-month {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .month-name {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .year-number {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    /* Calendar Container */
     .calendar-container {
-        background: var(--dark-2);
-        border: 1px solid var(--dark-3);
-        border-radius: 1rem;
-        padding: 1.5rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
         margin-bottom: 2rem;
     }
-
+    
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        background: var(--bg-primary);
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .weekday {
+        padding: 1.25rem;
+        text-align: center;
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    /* Calendar Grid */
     .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 1px;
-        background: var(--dark-3);
-        border: 1px solid var(--dark-3);
-        border-radius: 0.5rem;
+    }
+    
+    .calendar-day {
+        min-height: 120px;
+        padding: 0.75rem;
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-surface);
+        transition: all var(--transition-base);
+    }
+    
+    .calendar-day:nth-child(7n) {
+        border-right: none;
+    }
+    
+    .calendar-day:hover {
+        background: rgba(99, 102, 241, 0.02);
+    }
+    
+    .calendar-day.has-entry {
+        background: rgba(99, 102, 241, 0.05);
+        border-left: 3px solid var(--primary);
+    }
+    
+    .calendar-day.empty {
+        background: var(--bg-primary);
+        border-color: var(--border);
+    }
+    
+    .day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+    
+    .day-number {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .today-badge {
+        padding: 0.125rem 0.5rem;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 12px;
+    }
+    
+    .day-content {
+        height: calc(100% - 32px);
         overflow: hidden;
     }
-
-    .calendar-weekday {
-        background: var(--dark-3);
-        padding: 1rem;
-        text-align: center;
-        font-weight: 600;
-        color: var(--light);
-        font-size: 0.9rem;
-    }
-
-    .calendar-day {
-        background: var(--dark-2);
-        padding: 0.75rem;
-        min-height: 100px;
+    
+    .entry-link {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        transition: all 0.3s ease;
+        text-decoration: none;
     }
-
-    .calendar-day:hover {
-        background: var(--dark-3);
-    }
-
-    .calendar-day.has-entry {
-        background: rgba(109, 40, 217, 0.1);
-        border: 1px solid var(--primary-light);
-    }
-
-    .day-number {
-        font-weight: 600;
-        color: var(--light);
-        font-size: 0.9rem;
-    }
-
-    .day-entry {
-        flex: 1;
+    
+    .entry-preview {
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 10px;
+        color: var(--primary);
+        font-size: 1.25rem;
+        transition: all var(--transition-base);
     }
-
-    .entry-preview {
-        font-size: 1.5rem;
-        text-decoration: none;
-        transition: transform 0.3s ease;
+    
+    .entry-link:hover .entry-preview {
+        background: var(--primary);
+        color: white;
+        transform: scale(1.1);
     }
-
-    .entry-preview:hover {
-        transform: scale(1.2);
+    
+    .entry-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
     }
-
+    
+    .entry-title {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .mood-indicator {
+        font-size: 0.75rem;
+        padding: 0.125rem 0.5rem;
+        border-radius: 10px;
+        align-self: flex-start;
+    }
+    
+    .mood-happy { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .mood-sad { background: rgba(59, 130, 246, 0.1); color: var(--info); }
+    .mood-angry { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+    .mood-excited { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .mood-reflective { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+    
+    /* Legend */
     .calendar-legend {
         display: flex;
         justify-content: center;
         gap: 2rem;
+        margin-bottom: 2rem;
     }
-
+    
     .legend-item {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
-
-    .legend-color {
+    
+    .legend-indicator {
         width: 20px;
         height: 20px;
-        border-radius: 0.25rem;
-        border: 1px solid var(--dark-3);
+        border-radius: 6px;
+        border: 1px solid var(--border);
     }
-
-    .legend-color.has-entry {
-        background: rgba(109, 40, 217, 0.1);
-        border-color: var(--primary-light);
+    
+    .legend-indicator.today {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border: none;
     }
-
-    .mb-6 { margin-bottom: 2rem; }
-
+    
+    .legend-indicator.has-entry {
+        background: rgba(99, 102, 241, 0.1);
+        border-color: var(--primary);
+    }
+    
+    .legend-item span {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+    
+    /* Calendar Stats */
+    .calendar-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .calendar-day {
+            min-height: 100px;
+        }
+    }
+    
     @media (max-width: 768px) {
-        .calendar-nav {
+        .calendar-navigation {
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .calendar-grid {
+            grid-template-columns: repeat(7, 1fr);
         }
         
         .calendar-day {
@@ -179,11 +411,51 @@
         }
         
         .day-number {
-            font-size: 0.8rem;
+            font-size: 1rem;
         }
         
         .entry-preview {
-            font-size: 1.2rem;
+            width: 32px;
+            height: 32px;
+            font-size: 1rem;
+        }
+        
+        .entry-title {
+            font-size: 0.75rem;
+        }
+        
+        .weekday {
+            padding: 0.75rem 0.25rem;
+            font-size: 0.75rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .calendar-grid {
+            grid-template-columns: repeat(7, 1fr);
+        }
+        
+        .calendar-day {
+            min-height: 60px;
+            padding: 0.25rem;
+        }
+        
+        .day-number {
+            font-size: 0.875rem;
+        }
+        
+        .today-badge {
+            display: none;
+        }
+        
+        .entry-preview {
+            display: none;
+        }
+        
+        .calendar-legend {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
         }
     }
 </style>

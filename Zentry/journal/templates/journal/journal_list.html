@@ -1,524 +1,1622 @@
 {% extends 'base.html' %}
 
-{% block title %}Zentry - Journal{% endblock %}
+{% block title %}Journal | Zentry{% endblock %}
 
 {% block content %}
-<div class="landing-container">
+<div class="journal-app">
+    <!-- FAB (Floating Action Button) -->
+    <button class="fab" id="createFab">
+        <i class="fas fa-plus"></i>
+    </button>
 
-    {% if messages %}
-    <div class="messages-container">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} mb-4">
-            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <main class="journal-main">
-        <div class="journal-header">
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="journal-header">
             <div class="header-content">
-                <h1 class="gradient-text">My Journal</h1>
-                <p class="subtitle">Your personal thoughts and memories</p>
-                
-                <div class="quick-actions">
-                    <a href="{% url 'journal:journal_calendar' %}" class="action-btn">
-                        <i class="fas fa-calendar"></i> Calendar
-                    </a>
-                    <a href="{% url 'journal:journal_search' %}" class="action-btn">
-                        <i class="fas fa-search"></i> Search
-                    </a>
-                    <a href="{% url 'journal:public_journals' %}" class="action-btn">
-                        <i class="fas fa-globe"></i> Public Journals
-                    </a>
+                <div class="header-left">
+                    <h1 class="header-title">
+                        <i class="fas fa-book-open"></i>
+                        My Journal
+                    </h1>
+                    <p class="header-subtitle">
+                        Document your thoughts, track your progress, and earn rewards
+                    </p>
+                </div>
+                <div class="header-right">
+                    <div class="header-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ profile.total_points|default:0 }}</span>
+                            <span class="stat-label">Total Points</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ entries.count }}</span>
+                            <span class="stat-label">Entries</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-book"></i>
+        <!-- Stats Overview -->
+        <section class="stats-overview">
+            <div class="stats-grid">
+                <div class="stat-card stat-card-primary">
+                    <div class="stat-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ current_streak }}</span>
+                        <span class="stat-title">Day Streak</span>
+                        <span class="stat-subtitle">
+                            {% if has_journal_today %}
+                            <i class="fas fa-check-circle"></i> Today completed
+                            {% else %}
+                            <i class="fas fa-clock"></i> Write today to continue
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    <h3>{{ entries.count }}</h3>
-                    <p>Total Entries</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>{{ entries_today }}</h3>
-                    <p>Today</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-globe"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>{{ public_count }}</h3>
-                    <p>Public</p>
-                </div>
-            </div>
-        </div>
 
-        <div class="filters-section">
-            <div class="filter-group">
-                <h4>Filter by Mood</h4>
-                <div class="mood-filters">
-                    <a href="{% url 'journal:journal_list' %}" class="mood-filter {% if not mood_filter %}active{% endif %}">
-                        All
-                    </a>
-                    {% for mood_value, mood_display in form.fields.mood.choices %}
-                        {% if mood_value %}
-                        <a href="?mood={{ mood_value }}" class="mood-filter {% if mood_filter == mood_value %}active{% endif %}">
-                            {{ mood_display }}
+                <div class="stat-card stat-card-success">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ entries_today }}</span>
+                        <span class="stat-title">Today's Entries</span>
+                        <span class="stat-subtitle">{{ timezone.now|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-info">
+                    <div class="stat-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ public_count }}</span>
+                        <span class="stat-title">Public</span>
+                        <span class="stat-subtitle">Shared with community</span>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-warning">
+                    <div class="stat-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ longest_streak }}</span>
+                        <span class="stat-title">Best Streak</span>
+                        <span class="stat-subtitle">Your personal record</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <main class="journal-content">
+            <!-- Side Navigation -->
+            <aside class="journal-sidebar">
+                <nav class="sidebar-nav">
+                    <div class="nav-section">
+                        <h3 class="nav-title">Quick Actions</h3>
+                        <button class="nav-btn nav-btn-primary" id="createEntryBtn">
+                            <i class="fas fa-plus-circle"></i>
+                            New Entry
+                        </button>
+                        <a href="{% url 'journal:journal_calendar' %}" class="nav-btn">
+                            <i class="fas fa-calendar-alt"></i>
+                            Calendar
                         </a>
+                        <a href="{% url 'journal:journal_search' %}" class="nav-btn">
+                            <i class="fas fa-search"></i>
+                            Search
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <h3 class="nav-title">Navigation</h3>
+                        <a href="{% url 'journal:journal_list' %}" class="nav-link active">
+                            <i class="fas fa-home"></i>
+                            All Entries
+                        </a>
+                        <a href="{% url 'journal:public_journals' %}" class="nav-link">
+                            <i class="fas fa-globe"></i>
+                            Public Journals
+                        </a>
+                        <a href="{% url 'journal:discovered_words' %}" class="nav-link">
+                            <i class="fas fa-book"></i>
+                            Discovered Words
+                        </a>
+                        <a href="{% url 'journal:points_history' %}" class="nav-link">
+                            <i class="fas fa-history"></i>
+                            Points History
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <h3 class="nav-title">Filters</h3>
+                        <div class="filter-tags">
+                            <span class="filter-tag active">All</span>
+                            {% for mood_value, mood_display in form.fields.mood.choices %}
+                                {% if mood_value %}
+                                <a href="?mood={{ mood_value }}" class="filter-tag">
+                                    {{ mood_display }}
+                                </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="nav-section">
+                        <h3 class="nav-title">Tags</h3>
+                        <div class="sidebar-tags">
+                            <a href="#" class="sidebar-tag">#reflection</a>
+                            <a href="#" class="sidebar-tag">#daily</a>
+                            <a href="#" class="sidebar-tag">#goals</a>
+                            <a href="#" class="sidebar-tag">#ideas</a>
+                        </div>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Journal Entries -->
+            <section class="entries-section">
+                <div class="section-header">
+                    <h2 class="section-title">Recent Entries</h2>
+                    <div class="section-actions">
+                        <div class="dropdown">
+                            <button class="dropdown-btn">
+                                <i class="fas fa-sort"></i>
+                                Sort by: Date
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="#" class="dropdown-item">Date (Newest)</a>
+                                <a href="#" class="dropdown-item">Date (Oldest)</a>
+                                <a href="#" class="dropdown-item">Title A-Z</a>
+                                <a href="#" class="dropdown-item">Points</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if entries %}
+                <div class="entries-grid">
+                    {% for entry in entries %}
+                    <article class="entry-card" onclick="location.href='{% url 'journal:view_journal' entry.id %}'">
+                        {% if entry.cover_image %}
+                        <div class="entry-image">
+                            <img src="{{ entry.cover_image.url }}" alt="{{ entry.title }}">
+                            <div class="image-overlay">
+                                {% if entry.is_public %}
+                                <span class="public-badge">
+                                    <i class="fas fa-globe"></i>
+                                    Public
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
                         {% endif %}
+
+                        <div class="entry-content">
+                            <div class="entry-header">
+                                <span class="entry-date">
+                                    <i class="fas fa-calendar"></i>
+                                    {{ entry.date|date:"M d, Y" }}
+                                </span>
+                                {% if entry.mood %}
+                                <span class="mood-tag mood-{{ entry.mood|lower }}">
+                                    {{ entry.get_mood_display }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <h3 class="entry-title">{{ entry.title }}</h3>
+                            <p class="entry-excerpt">
+                                {{ entry.content|striptags|truncatewords:35 }}
+                            </p>
+
+                            {% if entry.tags %}
+                            <div class="entry-tags">
+                                {% for tag in entry.get_tags_list|slice:":3" %}
+                                <span class="tag">{{ tag }}</span>
+                                {% endfor %}
+                                {% if entry.get_tags_list|length > 3 %}
+                                <span class="tag-more">+{{ entry.get_tags_list|length|add:"-3" }}</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            <div class="entry-footer">
+                                <div class="entry-points">
+                                    <i class="fas fa-star"></i>
+                                    +{{ entry.get_total_points_earned }} points
+                                </div>
+                                <div class="entry-actions">
+                                    <a href="{% url 'journal:view_journal' entry.id %}" class="action-link">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'journal:edit_journal' entry.id %}" class="action-link">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
                     {% endfor %}
                 </div>
-            </div>
-        </div>
-
-        {% if entries %}
-        <div class="entries-grid">
-            {% for entry in entries %}
-            <div class="journal-card" onclick="location.href='{% url 'journal:view_journal' entry.id %}'" style="cursor: pointer;">
-                {% if entry.cover_image %}
-                <div class="card-image">
-                    <img src="{{ entry.cover_image.url }}" alt="{{ entry.title }}">
-                    <div class="card-overlay">
-                        <span class="entry-date">{{ entry.date }}</span>
-                        {% if entry.mood %}
-                        <span class="mood-badge">{{ entry.get_mood_display }}</span>
-                        {% endif %}
-                    </div>
-                </div>
                 {% else %}
-                <div class="card-header-no-image">
-                    <span class="entry-date">{{ entry.date }}</span>
-                    {% if entry.mood %}
-                    <span class="mood-badge">{{ entry.get_mood_display }}</span>
-                    {% endif %}
+                <div class="empty-state">
+                    <div class="empty-illustration">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <h3>Your journal is empty</h3>
+                    <p>Start documenting your thoughts and experiences</p>
+                    <button class="btn btn-primary btn-lg" id="emptyCreateBtn">
+                        <i class="fas fa-plus"></i>
+                        Create Your First Entry
+                    </button>
                 </div>
                 {% endif %}
-                
-                <div class="card-content">
-                    <h3 class="card-title">{{ entry.title }}</h3>
-                    <p class="card-excerpt">{{ entry.content|truncatewords:30 }}</p>
-                    
-                    {% if entry.tags %}
-                    <div class="card-tags">
-                        {% for tag in entry.get_tags_list %}
-                        <span class="tag">{{ tag }}</span>
-                        {% endfor %}
+
+                <!-- Quick Stats -->
+                <div class="quick-stats-footer">
+                    <div class="stat-item">
+                        <i class="fas fa-fire"></i>
+                        <div>
+                            <span class="stat-value">{{ current_streak }}</span>
+                            <span class="stat-label">Current Streak</span>
+                        </div>
                     </div>
-                    {% endif %}
-                    
-                    <div class="card-actions">
-                        <a href="{% url 'journal:view_journal' entry.id %}" class="btn-action">
-                            <i class="fas fa-eye"></i> Read
-                        </a>
-                        <a href="{% url 'journal:edit_journal' entry.id %}" class="btn-action">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        {% if entry.is_public %}
-                        <span class="public-indicator">
-                            <i class="fas fa-globe"></i>
-                        </span>
-                        {% endif %}
+                    <div class="stat-item">
+                        <i class="fas fa-trophy"></i>
+                        <div>
+                            <span class="stat-value">{{ longest_streak }}</span>
+                            <span class="stat-label">Best Streak</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-star"></i>
+                        <div>
+                            <span class="stat-value">{{ profile.total_points|default:0 }}</span>
+                            <span class="stat-label">Total Points</span>
+                        </div>
                     </div>
                 </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Create Entry Modal -->
+    <div class="modal" id="createModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h2>Create New Entry</h2>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <div class="empty-icon">
-                <i class="fas fa-book-open"></i>
+            <div class="modal-body">
+                <form method="post" action="{% url 'journal:create_journal' %}" id="journalForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="title" class="form-label">
+                            <i class="fas fa-heading"></i> Title
+                        </label>
+                        <input type="text" 
+                               id="title" 
+                               name="title" 
+                               class="form-input" 
+                               placeholder="What's on your mind?"
+                               required
+                               autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content" class="form-label">
+                            <i class="fas fa-pen"></i> Content
+                        </label>
+                        <textarea id="content" 
+                                  name="content" 
+                                  class="form-textarea" 
+                                  rows="6"
+                                  placeholder="Write your thoughts here..."
+                                  required></textarea>
+                        <div class="form-hint">
+                            <span id="charCount">0</span> characters • <span id="wordCount">0</span> words
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mood" class="form-label">
+                                <i class="fas fa-smile"></i> Mood
+                            </label>
+                            <select id="mood" name="mood" class="form-select">
+                                <option value="">Select your mood</option>
+                                {% for mood_value, mood_display in form.fields.mood.choices %}
+                                    {% if mood_value %}
+                                    <option value="{{ mood_value }}">{{ mood_display }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="date" class="form-label">
+                                <i class="fas fa-calendar"></i> Date
+                            </label>
+                            <input type="date" 
+                                   id="date" 
+                                   name="date" 
+                                   class="form-input"
+                                   value="{{ timezone.now|date:'Y-m-d' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tags" class="form-label">
+                            <i class="fas fa-tags"></i> Tags
+                        </label>
+                        <input type="text" 
+                               id="tags" 
+                               name="tags" 
+                               class="form-input" 
+                               placeholder="Add tags separated by commas">
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" id="is_public" name="is_public" class="form-checkbox">
+                            <label for="is_public" class="form-check-label">
+                                <i class="fas fa-globe"></i> Make this entry public
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Entry
+                        </button>
+                    </div>
+                </form>
             </div>
-            <h3>No journal entries yet</h3>
-            <p>Start documenting your thoughts and experiences</p>
-            <a href="{% url 'journal:create_journal' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Create Your First Entry
-            </a>
         </div>
-        {% endif %}
-    </main>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-    .journal-main {
-        padding: 2rem 0;
-        max-width: 1200px;
+    /* ===== RESET & BASE STYLES ===== */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        /* Color Palette */
+        --primary: #6366F1;
+        --primary-light: #818CF8;
+        --primary-dark: #4F46E5;
+        --secondary: #10B981;
+        --accent: #F59E0B;
+        --danger: #EF4444;
+        --warning: #F59E0B;
+        --success: #10B981;
+        --info: #3B82F6;
+        
+        /* Background Colors */
+        --bg-primary: #0F172A;
+        --bg-secondary: #1E293B;
+        --bg-tertiary: #334155;
+        --bg-surface: rgba(30, 41, 59, 0.7);
+        
+        /* Text Colors */
+        --text-primary: #F1F5F9;
+        --text-secondary: #94A3B8;
+        --text-muted: #64748B;
+        
+        /* Border Colors */
+        --border: rgba(148, 163, 184, 0.1);
+        --border-light: rgba(148, 163, 184, 0.05);
+        --border-hover: rgba(99, 102, 241, 0.3);
+        
+        /* Shadows */
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        
+        /* Transitions */
+        --transition-fast: 150ms ease;
+        --transition-base: 250ms ease;
+        --transition-slow: 350ms ease;
+    }
+
+    body {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ===== MAIN LAYOUT ===== */
+    .journal-app {
+        min-height: 100vh;
+        position: relative;
+    }
+
+    .container {
+        max-width: 1400px;
         margin: 0 auto;
+        padding: 0 1.5rem;
     }
 
+    /* ===== HEADER ===== */
     .journal-header {
-        text-align: center;
-        margin-bottom: 3rem;
         padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
     }
 
-    .header-content h1 {
-        font-size: 3rem;
-        font-weight: 700;
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .header-left h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
         margin-bottom: 0.5rem;
     }
 
-    .subtitle {
-        font-size: 1.2rem;
-        color: var(--light);
-        opacity: 0.8;
-        margin-bottom: 2rem;
+    .header-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.125rem;
     }
 
-    .quick-actions {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .action-btn {
-        padding: 0.75rem 1.5rem;
-        background: var(--dark-2);
-        border: 1px solid var(--dark-3);
-        border-radius: 0.75rem;
-        color: var(--light);
-        text-decoration: none;
+    .header-stats {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        transition: all 0.3s ease;
+        gap: 1.5rem;
+        background: var(--bg-surface);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
     }
 
-    .action-btn:hover {
-        background: var(--primary);
-        border-color: var(--primary-light);
-        color: white;
-        transform: translateY(-2px);
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 40px;
+        background: var(--border);
+    }
+
+    /* ===== STATS OVERVIEW ===== */
+    .stats-overview {
+        margin-bottom: 3rem;
     }
 
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 1.5rem;
-        margin-bottom: 2rem;
     }
 
     .stat-card {
-        background: var(--dark-2);
-        border: 1px solid var(--dark-3);
-        border-radius: 1rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
         padding: 1.5rem;
         display: flex;
         align-items: center;
-        gap: 1rem;
-        transition: all 0.3s ease;
+        gap: 1.25rem;
+        transition: all var(--transition-base);
     }
 
     .stat-card:hover {
-        border-color: var(--primary-light);
+        border-color: var(--border-hover);
         transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-card-primary {
+        border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .stat-card-success {
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .stat-card-info {
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .stat-card-warning {
+        border-color: rgba(245, 158, 11, 0.2);
     }
 
     .stat-icon {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-light));
-        border-radius: 0.75rem;
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.5rem;
     }
 
-    .stat-content h3 {
+    .stat-card-primary .stat-icon {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(129, 140, 248, 0.1));
+        color: var(--primary);
+    }
+
+    .stat-card-success .stat-icon {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.1));
+        color: var(--success);
+    }
+
+    .stat-card-info .stat-icon {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(96, 165, 250, 0.1));
+        color: var(--info);
+    }
+
+    .stat-card-warning .stat-icon {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(251, 191, 36, 0.1));
+        color: var(--warning);
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-number {
+        display: block;
         font-size: 2rem;
-        font-weight: 700;
-        margin: 0;
-        color: var(--light);
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+        margin-bottom: 0.25rem;
     }
 
-    .stat-content p {
-        color: var(--light);
-        opacity: 0.7;
-        margin: 0;
-        font-size: 0.9rem;
+    .stat-title {
+        display: block;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
     }
 
-    .filters-section {
-        margin-bottom: 2rem;
+    .stat-subtitle {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: 0.75rem;
+        color: var(--text-muted);
     }
 
-    .filter-group {
-        background: var(--dark-2);
-        border: 1px solid var(--dark-3);
-        border-radius: 1rem;
-        padding: 1.5rem;
+    .stat-subtitle .fa-check-circle {
+        color: var(--success);
     }
 
-    .filter-group h4 {
-        margin: 0 0 1rem 0;
-        color: var(--light);
-        font-size: 1rem;
+    .stat-subtitle .fa-clock {
+        color: var(--warning);
+    }
+
+    /* ===== MAIN CONTENT LAYOUT ===== */
+    .journal-content {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 2rem;
+        margin-bottom: 4rem;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .journal-sidebar {
+        position: sticky;
+        top: 2rem;
+        height: fit-content;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .nav-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .nav-title {
+        font-size: 0.875rem;
         font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
     }
 
-    .mood-filters {
+    .nav-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all var(--transition-base);
+    }
+
+    .nav-btn:hover {
+        background: rgba(99, 102, 241, 0.05);
+        border-color: var(--border-hover);
+        color: var(--primary);
+        transform: translateX(4px);
+    }
+
+    .nav-btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border: none;
+        color: white;
+    }
+
+    .nav-btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all var(--transition-base);
+    }
+
+    .nav-link:hover {
+        background: rgba(99, 102, 241, 0.05);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+        font-weight: 500;
+    }
+
+    .filter-tags {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
     }
 
-    .mood-filter {
-        padding: 0.5rem 1rem;
-        background: var(--dark-3);
-        border: 1px solid var(--dark-3);
-        border-radius: 2rem;
-        color: var(--light);
+    .filter-tag {
+        padding: 0.375rem 0.75rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
         text-decoration: none;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
+        transition: all var(--transition-base);
     }
 
-    .mood-filter:hover,
-    .mood-filter.active {
+    .filter-tag:hover {
+        border-color: var(--border-hover);
+        color: var(--primary);
+    }
+
+    .filter-tag.active {
         background: var(--primary);
-        border-color: var(--primary-light);
+        border-color: var(--primary);
         color: white;
     }
 
+    .sidebar-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .sidebar-tag {
+        padding: 0.375rem 0.75rem;
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: all var(--transition-base);
+    }
+
+    .sidebar-tag:hover {
+        background: rgba(99, 102, 241, 0.1);
+        border-color: var(--border-hover);
+        color: var(--primary);
+    }
+
+    /* ===== ENTRIES SECTION ===== */
+    .entries-section {
+        flex: 1;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .section-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .dropdown {
+        position: relative;
+    }
+
+    .dropdown-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all var(--transition-base);
+    }
+
+    .dropdown-btn:hover {
+        border-color: var(--border-hover);
+        color: var(--primary);
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 0;
+        min-width: 180px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.5rem;
+        box-shadow: var(--shadow-xl);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: all var(--transition-base);
+        z-index: 10;
+    }
+
+    .dropdown:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dropdown-item {
+        display: block;
+        padding: 0.625rem 0.75rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-radius: 6px;
+        transition: all var(--transition-fast);
+    }
+
+    .dropdown-item:hover {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+    }
+
+    /* ===== ENTRIES GRID ===== */
     .entries-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
         gap: 1.5rem;
+        margin-bottom: 3rem;
     }
 
-    .journal-card {
-        background: var(--dark-2);
-        border: 1px solid var(--dark-3);
-        border-radius: 1rem;
+    .entry-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
         overflow: hidden;
-        transition: all 0.3s ease;
+        transition: all var(--transition-base);
+        cursor: pointer;
+    }
+
+    .entry-card:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .entry-image {
+        height: 180px;
         position: relative;
-    }
-
-    .journal-card:hover {
-        border-color: var(--primary-light);
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .card-image {
-        height: 200px;
         overflow: hidden;
-        position: relative;
     }
 
-    .card-image img {
+    .entry-image img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.3s ease;
+        transition: transform var(--transition-slow);
     }
 
-    .journal-card:hover .card-image img {
+    .entry-card:hover .entry-image img {
         transform: scale(1.05);
     }
 
-    .card-overlay {
+    .image-overlay {
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         padding: 1rem;
-        background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent);
     }
 
-    .card-header-no-image {
-        padding: 1rem 1.5rem 0;
-        display: flex;
-        justify-content: space-between;
+    .public-badge {
+        display: inline-flex;
         align-items: center;
-    }
-
-    .entry-date {
-        font-size: 0.85rem;
-        color: var(--light);
-        opacity: 0.8;
-    }
-
-    .mood-badge {
-        padding: 0.25rem 0.75rem;
-        background: var(--dark-3);
-        border-radius: 1rem;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        background: rgba(16, 185, 129, 0.2);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 20px;
+        color: var(--success);
         font-size: 0.75rem;
-        color: var(--light);
+        font-weight: 500;
     }
 
-    .card-content {
+    .entry-content {
         padding: 1.5rem;
     }
 
-    .card-title {
+    .entry-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .entry-date {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    .mood-tag {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .mood-happy {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+
+    .mood-sad {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--info);
+    }
+
+    .mood-angry {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+    .mood-excited {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+
+    .mood-reflective {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+    }
+
+    .entry-title {
         font-size: 1.25rem;
         font-weight: 600;
-        margin: 0 0 1rem 0;
-        color: var(--light);
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
         line-height: 1.4;
     }
 
-    .card-excerpt {
-        color: var(--light);
-        opacity: 0.8;
+    .entry-excerpt {
+        color: var(--text-secondary);
+        font-size: 0.9375rem;
         line-height: 1.6;
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
 
-    .card-tags {
+    .entry-tags {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
     }
 
     .tag {
-        padding: 0.25rem 0.75rem;
-        background: var(--dark-3);
-        border-radius: 1rem;
+        padding: 0.25rem 0.625rem;
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text-secondary);
         font-size: 0.75rem;
-        color: var(--light);
     }
 
-    .card-actions {
+    .tag-more {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+    }
+
+    .entry-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         padding-top: 1rem;
-        border-top: 1px solid var(--dark-3);
+        border-top: 1px solid var(--border);
     }
 
-    .btn-action {
-        padding: 0.5rem 1rem;
-        background: var(--dark-3);
-        border: 1px solid var(--dark-3);
-        border-radius: 0.5rem;
-        color: var(--light);
-        text-decoration: none;
-        font-size: 0.85rem;
-        transition: all 0.3s ease;
+    .entry-points {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.375rem;
+        color: var(--accent);
+        font-weight: 600;
+        font-size: 0.875rem;
     }
 
-    .btn-action:hover {
+    .entry-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .action-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all var(--transition-fast);
+    }
+
+    .action-link:hover {
         background: var(--primary);
-        border-color: var(--primary-light);
+        border-color: var(--primary);
         color: white;
         transform: translateY(-1px);
     }
 
-    .public-indicator {
-        color: var(--success);
-        margin-left: auto;
-    }
-
+    /* ===== EMPTY STATE ===== */
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
-        background: var(--dark-2);
-        border: 1px solid var(--dark-3);
-        border-radius: 1rem;
-        margin: 2rem 0;
+        background: var(--bg-surface);
+        border: 2px dashed var(--border);
+        border-radius: 20px;
     }
 
-    .empty-icon {
+    .empty-illustration {
         font-size: 4rem;
-        color: var(--primary-light);
-        margin-bottom: 1.5rem;
+        color: var(--primary);
         opacity: 0.5;
+        margin-bottom: 1.5rem;
     }
 
     .empty-state h3 {
         font-size: 1.5rem;
+        color: var(--text-primary);
         margin-bottom: 0.5rem;
-        color: var(--light);
     }
 
     .empty-state p {
-        color: var(--light);
-        opacity: 0.7;
+        color: var(--text-secondary);
         margin-bottom: 2rem;
     }
 
-    .gradient-text {
-        background: linear-gradient(135deg, var(--primary-light), var(--accent));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+    /* ===== QUICK STATS FOOTER ===== */
+    .quick-stats-footer {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        padding: 1.5rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
     }
 
-    .alert {
-        padding: 1rem 1.5rem;
-        border-radius: 0.75rem;
-        border: 1px solid;
+    .quick-stats-footer .stat-item {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 1rem;
+    }
+
+    .quick-stats-footer .stat-item i {
+        font-size: 1.5rem;
+        color: var(--primary);
+    }
+
+    .quick-stats-footer .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .quick-stats-footer .stat-label {
+        font-size: 0.875rem;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        border: 1px solid transparent;
+        border-radius: 8px;
         font-weight: 500;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all var(--transition-base);
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-secondary {
+        background: var(--bg-surface);
+        border-color: var(--border);
+        color: var(--text-secondary);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(148, 163, 184, 0.1);
+        color: var(--text-primary);
+    }
+
+    .btn-lg {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    /* ===== FAB ===== */
+    .fab {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        transition: all var(--transition-base);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .fab:hover {
+        transform: scale(1.1) rotate(90deg);
+        box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+    }
+
+    /* ===== MODAL ===== */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 1rem;
+    }
+
+    .modal.active {
+        display: flex;
+        animation: modalFadeIn var(--transition-base);
+    }
+
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    .modal-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(8px);
+    }
+
+    .modal-dialog {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: var(--shadow-2xl);
+        overflow: hidden;
+        animation: modalSlideIn var(--transition-base);
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .modal-close {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .modal-close:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: var(--danger);
+        color: var(--danger);
+    }
+
+    .modal-body {
+        padding: 2rem;
+        overflow-y: auto;
+        max-height: calc(90vh - 80px);
+    }
+
+    /* ===== FORM STYLES ===== */
+    .form-group {
         margin-bottom: 1.5rem;
     }
 
-    .alert-success {
-        background-color: rgba(16, 185, 129, 0.1);
-        border-color: var(--success);
-        color: var(--success);
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
-    .alert-error {
-        background-color: rgba(239, 68, 68, 0.1);
-        border-color: var(--error);
-        color: var(--error);
+    .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 0.9375rem;
+        transition: all var(--transition-fast);
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 0.9375rem;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 150px;
+        transition: all var(--transition-fast);
+    }
+
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 0.9375rem;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .form-hint {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+        text-align: right;
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-checkbox {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--border);
+        border-radius: 4px;
+        background: var(--bg-primary);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .form-checkbox:checked {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .form-check-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    /* ===== RESPONSIVE DESIGN ===== */
+    @media (max-width: 1024px) {
+        .journal-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .journal-sidebar {
+            position: static;
+        }
+        
+        .entries-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
     }
 
     @media (max-width: 768px) {
-        .journal-header h1 {
-            font-size: 2rem;
-        }
-        
-        .quick-actions {
+        .header-content {
             flex-direction: column;
-            align-items: center;
+            text-align: center;
+            gap: 1.5rem;
         }
         
-        .action-btn {
-            width: 200px;
+        .header-stats {
+            width: 100%;
             justify-content: center;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
         }
         
         .entries-grid {
             grid-template-columns: 1fr;
         }
         
-        .stats-grid {
-            grid-template-columns: 1fr;
+        .section-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+        
+        .section-actions {
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding: 0 1rem;
+        }
+        
+        .journal-header {
+            padding: 1.5rem 0;
+        }
+        
+        .header-left h1 {
+            font-size: 2rem;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .fab {
+            width: 56px;
+            height: 56px;
+            font-size: 1.25rem;
         }
     }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal Elements
+        const modal = document.getElementById('createModal');
+        const createFab = document.getElementById('createFab');
+        const createEntryBtn = document.getElementById('createEntryBtn');
+        const emptyCreateBtn = document.getElementById('emptyCreateBtn');
+        const closeModalBtn = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const journalForm = document.getElementById('journalForm');
+        const contentTextarea = document.getElementById('content');
+        
+        // Open Modal
+        function openModal() {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('title').focus();
+        }
+        
+        // Close Modal
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Event Listeners for Opening Modal
+        [createFab, createEntryBtn, emptyCreateBtn].forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', openModal);
+            }
+        });
+        
+        // Event Listeners for Closing Modal
+        [closeModalBtn, cancelBtn].forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', closeModal);
+            }
+        });
+        
+        // Close modal when clicking on backdrop
+        modal.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-backdrop')) {
+                closeModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+        
+        // Character and Word Counter
+        if (contentTextarea) {
+            const charCount = document.getElementById('charCount');
+            const wordCount = document.getElementById('wordCount');
+            
+            function updateCounters() {
+                const text = contentTextarea.value;
+                const chars = text.length;
+                const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+                
+                charCount.textContent = chars;
+                wordCount.textContent = words;
+                
+                // Add visual feedback
+                if (words < 50) {
+                    charCount.style.color = '#EF4444';
+                    wordCount.style.color = '#EF4444';
+                } else if (words < 150) {
+                    charCount.style.color = '#F59E0B';
+                    wordCount.style.color = '#F59E0B';
+                } else {
+                    charCount.style.color = '#10B981';
+                    wordCount.style.color = '#10B981';
+                }
+            }
+            
+            contentTextarea.addEventListener('input', updateCounters);
+            updateCounters(); // Initial count
+        }
+        
+        // Auto-resize textarea
+        if (contentTextarea) {
+            function autoResize() {
+                contentTextarea.style.height = 'auto';
+                contentTextarea.style.height = (contentTextarea.scrollHeight) + 'px';
+            }
+            
+            contentTextarea.addEventListener('input', autoResize);
+            autoResize(); // Initial resize
+        }
+        
+        // Form submission handling
+        if (journalForm) {
+            journalForm.addEventListener('submit', function() {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    submitBtn.disabled = true;
+                }
+            });
+        }
+        
+        // Today's date by default
+        const dateInput = document.getElementById('date');
+        if (dateInput) {
+            dateInput.value = new Date().toISOString().split('T')[0];
+        }
+        
+        // Dropdown functionality
+        const dropdowns = document.querySelectorAll('.dropdown');
+        dropdowns.forEach(dropdown => {
+            const btn = dropdown.querySelector('.dropdown-btn');
+            const menu = dropdown.querySelector('.dropdown-menu');
+            
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menu.classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                menu.classList.remove('show');
+            });
+        });
+    });
+</script>
 {% endblock %}

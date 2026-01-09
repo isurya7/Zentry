@@ -404,13 +404,13 @@ def api_complete_task(request, task_id):
             task.save()
             # Award points
             profile = award_points(request.user, 1, 'task')
-        
-        return JsonResponse({
-            'success': True,
-            'points_earned': 1,
-            'total_points': profile.total_points,
-            'daily_points': profile.daily_points
-        })
+            
+            return JsonResponse({
+                'success': True,
+                'points_earned': 1,
+                'total_points': profile.total_points,
+                'daily_points': profile.daily_points
+            })
     
     return JsonResponse({'success': False}, status=400)
 

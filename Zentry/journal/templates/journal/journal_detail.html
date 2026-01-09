@@ -1,211 +1,539 @@
 {% extends 'base.html' %}
 
-{% block journal_content %}
-<div class="journal-detail">
-    <!-- Back Button -->
-    <div class="back-nav mb-6">
-        <a href="{% url 'journal:journal_list' %}" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back to Journal
-        </a>
-    </div>
+{% block title %}{{ entry.title }} - Zentry Journal{% endblock %}
 
-    <!-- Entry Header -->
-    <div class="entry-header">
-        {% if entry.cover_image %}
-        <div class="cover-image">
-            <img src="{{ entry.cover_image.url }}" alt="{{ entry.title }}">
+{% block content %}
+<div class="landing-container">
+    <main class="journal-detail-main">
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mb-4">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
-        
-        <div class="entry-meta">
-            <h1 class="entry-title">{{ entry.title }}</h1>
-            <div class="meta-info">
-                <span class="date">
-                    <i class="fas fa-calendar"></i> {{ entry.date }}
-                </span>
-                {% if entry.mood %}
-                <span class="mood {{ entry.mood }}">
-                    <i class="fas fa-smile"></i> {{ entry.get_mood_display }}
-                </span>
-                {% endif %}
-                {% if entry.is_public %}
-                <span class="public-badge">
-                    <i class="fas fa-globe"></i> Public
-                </span>
-                {% else %}
-                <span class="private-badge">
-                    <i class="fas fa-lock"></i> Private
-                </span>
-                {% endif %}
+
+        <div class="journal-header">
+            <div class="header-content">
+                <div class="back-nav">
+                    <a href="{% url 'journal:journal_list' %}" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Back to Journal
+                    </a>
+                </div>
+                <h1 class="gradient-text">{{ entry.title }}</h1>
+                <div class="entry-meta">
+                    <span class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        {{ entry.date|date:"F d, Y" }}
+                    </span>
+                    <span class="meta-item">
+                        <i class="fas fa-user"></i>
+                        {{ entry.user.username }}
+                    </span>
+                    {% if entry.mood %}
+                    <span class="meta-item">
+                        <i class="fas fa-smile"></i>
+                        {{ entry.get_mood_display }}
+                    </span>
+                    {% endif %}
+                    <span class="meta-item">
+                        <i class="fas fa-star" style="color: var(--accent);"></i>
+                        +{{ total_points }} points earned
+                    </span>
+                    {% if entry.is_public %}
+                    <span class="meta-item public-badge">
+                        <i class="fas fa-globe"></i> Public
+                    </span>
+                    {% else %}
+                    <span class="meta-item private-badge">
+                        <i class="fas fa-lock"></i> Private
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if entry.cover_image %}
+        <div class="cover-image-container">
+            <img src="{{ entry.cover_image.url }}" alt="{{ entry.title }}" class="cover-image">
+        </div>
+        {% endif %}
+
+        <div class="entry-content-container">
+            <div class="entry-content">
+                {{ entry.content|linebreaks }}
             </div>
             
             {% if entry.tags %}
-            <div class="entry-tags">
-                {% for tag in entry.get_tags_list %}
-                <a href="{% url 'journal:journal_by_tag' tag=tag %}" class="tag">{{ tag }}</a>
-                {% endfor %}
+            <div class="tags-section">
+                <h3><i class="fas fa-tags"></i> Tags</h3>
+                <div class="tags-container">
+                    {% for tag in entry.get_tags_list %}
+                    <a href="{% url 'journal:journal_by_tag' tag %}" class="tag-link">{{ tag }}</a>
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
         </div>
-    </div>
 
-    <!-- Entry Content -->
-    <div class="entry-content">
-        <div class="content-card">
-            <div class="content-body">
-                {{ entry.content|linebreaks }}
+        {% if discovered_words %}
+        <div class="discovered-words-section">
+            <h3><i class="fas fa-book"></i> Discovered Words ({{ discovered_words.count }})</h3>
+            <p class="section-subtitle">Words you discovered in this entry</p>
+            
+            <div class="words-grid">
+                {% for word_obj in discovered_words %}
+                <div class="word-card {% if word_obj.is_high_level %}high-level-word{% endif %}">
+                    <div class="word-header">
+                        <h4>{{ word_obj.word }}</h4>
+                        {% if word_obj.is_high_level %}
+                        <span class="word-level-badge">
+                            <i class="fas fa-crown"></i> High-Level
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if word_obj.meaning %}
+                    <div class="word-meaning">
+                        {{ word_obj.meaning }}
+                    </div>
+                    {% else %}
+                    <div class="word-meaning empty">
+                        <i class="fas fa-spinner fa-spin"></i> Fetching meaning...
+                    </div>
+                    {% endif %}
+                    
+                    {% if word_obj.is_high_level and word_obj.points_earned > 0 %}
+                    <div class="word-points">
+                        <i class="fas fa-star"></i>
+                        +{{ word_obj.points_earned }} point{{ word_obj.points_earned|pluralize }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="word-footer">
+                        <small>Discovered on {{ word_obj.discovered_date|date:"M d, Y" }}</small>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
-    </div>
+        {% endif %}
 
-    <!-- Entry Actions -->
-    {% if entry.user == request.user %}
-    <div class="entry-actions">
-        <div class="actions-card">
-            <h4>Manage Entry</h4>
+        <div class="points-breakdown">
+            <h3><i class="fas fa-chart-pie"></i> Points Breakdown</h3>
+            <div class="breakdown-grid">
+                <div class="breakdown-item">
+                    <div class="breakdown-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="breakdown-content">
+                        <h4>Journal Entry</h4>
+                        <p>Base points for writing</p>
+                    </div>
+                    <div class="breakdown-points">+{{ entry.points_earned }}</div>
+                </div>
+                
+                {% if entry.word_points_earned > 0 %}
+                <div class="breakdown-item">
+                    <div class="breakdown-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="breakdown-content">
+                        <h4>Word Discovery</h4>
+                        <p>High-level words found</p>
+                    </div>
+                    <div class="breakdown-points">+{{ entry.word_points_earned }}</div>
+                </div>
+                {% endif %}
+                
+                {% if entry.streak_points_earned > 0 %}
+                <div class="breakdown-item">
+                    <div class="breakdown-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="breakdown-content">
+                        <h4>Streak Bonus</h4>
+                        <p>Milestone achievement</p>
+                    </div>
+                    <div class="breakdown-points">+{{ entry.streak_points_earned }}</div>
+                </div>
+                {% endif %}
+                
+                <div class="breakdown-item total">
+                    <div class="breakdown-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="breakdown-content">
+                        <h4>Total Points</h4>
+                        <p>From this entry</p>
+                    </div>
+                    <div class="breakdown-points total-points">+{{ total_points }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="entry-actions">
+            {% if entry.user == request.user %}
             <div class="action-buttons">
-                <a href="{% url 'journal:edit_journal' entry.id %}" class="btn btn-outline">
+                <a href="{% url 'journal:edit_journal' entry.id %}" class="btn btn-edit">
                     <i class="fas fa-edit"></i> Edit Entry
                 </a>
-                <a href="{% url 'journal:delete_journal' entry.id %}" class="btn btn-danger">
+                <a href="{% url 'journal:delete_journal' entry.id %}" class="btn btn-delete">
                     <i class="fas fa-trash"></i> Delete Entry
                 </a>
+                <a href="{% url 'journal:journal_list' %}" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Journal
+                </a>
             </div>
+            {% endif %}
         </div>
-    </div>
-    {% endif %}
+    </main>
 </div>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-    .back-nav {
-        display: flex;
-        align-items: center;
+    .journal-detail-main {
+        padding: 2rem 0;
+        max-width: 1000px;
+        margin: 0 auto;
     }
 
-    .back-btn {
+    .back-nav {
+        margin-bottom: 1.5rem;
+    }
+
+    .back-link {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        background: var(--dark-2);
-        border: 1px solid var(--dark-3);
-        border-radius: 0.5rem;
-        color: var(--light);
+        color: var(--primary-light);
         text-decoration: none;
         font-weight: 500;
         transition: all 0.3s ease;
-    }
-
-    .back-btn:hover {
-        background: var(--dark-3);
-        border-color: var(--primary-light);
-        color: var(--primary-light);
-    }
-
-    .entry-header {
-        background: var(--dark-2);
+        padding: 0.5rem 1rem;
         border: 1px solid var(--dark-3);
-        border-radius: 1rem;
-        overflow: hidden;
+        border-radius: 0.5rem;
+        background: var(--dark-2);
+    }
+
+    .back-link:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        transform: translateX(-5px);
+    }
+
+    .journal-header {
+        text-align: center;
         margin-bottom: 2rem;
     }
 
-    .cover-image {
-        height: 300px;
-        overflow: hidden;
+    .header-content h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        line-height: 1.2;
     }
 
-    .cover-image img {
+    .entry-meta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--light);
+        opacity: 0.8;
+        font-size: 0.9rem;
+    }
+
+    .public-badge {
+        color: var(--success);
+        background: rgba(16, 185, 129, 0.1);
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+    }
+
+    .private-badge {
+        color: var(--error);
+        background: rgba(239, 68, 68, 0.1);
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+    }
+
+    .cover-image-container {
+        margin: 2rem 0;
+        border-radius: 1rem;
+        overflow: hidden;
+        max-height: 500px;
+    }
+
+    .cover-image {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
 
-    .entry-meta {
-        padding: 2rem;
+    .entry-content-container {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        margin: 2rem 0;
     }
 
-    .entry-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin: 0 0 1rem 0;
+    .entry-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
         color: var(--light);
-        line-height: 1.2;
+        opacity: 0.9;
     }
 
-    .meta-info {
+    .entry-content p {
+        margin-bottom: 1.5rem;
+    }
+
+    .tags-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--dark-3);
+    }
+
+    .tags-section h3 {
         display: flex;
         align-items: center;
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
+        gap: 0.5rem;
+        color: var(--light);
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
     }
 
-    .meta-info span {
+    .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .tag-link {
+        padding: 0.5rem 1rem;
+        background: var(--dark-3);
+        border: 1px solid var(--dark-3);
+        border-radius: 2rem;
+        color: var(--primary-light);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .tag-link:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+
+    .discovered-words-section {
+        background: var(--dark-2);
+        border: 1px solid var(--dark-3);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        margin: 2rem 0;
+    }
+
+    .discovered-words-section h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--light);
+        margin-bottom: 0.5rem;
+        font-size: 1.5rem;
+    }
+
+    .section-subtitle {
+        color: var(--light);
+        opacity: 0.7;
+        margin-bottom: 2rem;
+        font-size: 1rem;
+    }
+
+    .words-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .word-card {
+        background: var(--dark-3);
+        border: 1px solid var(--dark-4);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .word-card.high-level-word {
+        border-color: var(--accent);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), transparent);
+    }
+
+    .word-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .word-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .word-header h4 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: var(--light);
+        text-transform: capitalize;
+    }
+
+    .word-level-badge {
+        padding: 0.25rem 0.75rem;
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .word-meaning {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        font-style: italic;
+        padding-left: 0.5rem;
+        border-left: 2px solid var(--primary);
+    }
+
+    .word-meaning.empty {
+        color: var(--light);
+        opacity: 0.6;
+        font-style: normal;
+    }
+
+    .word-points {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
-        background: var(--dark-3);
+        background: rgba(245, 158, 11, 0.2);
         border-radius: 0.5rem;
+        color: var(--accent);
+        font-weight: 600;
         font-size: 0.9rem;
+    }
+
+    .word-footer {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--dark-4);
         color: var(--light);
+        opacity: 0.6;
+        font-size: 0.85rem;
     }
 
-    .public-badge {
-        background: rgba(16, 185, 129, 0.2) !important;
-        color: var(--success) !important;
-    }
-
-    .private-badge {
-        background: rgba(239, 68, 68, 0.2) !important;
-        color: var(--error) !important;
-    }
-
-    .entry-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .entry-content {
-        margin-bottom: 2rem;
-    }
-
-    .content-card {
+    .points-breakdown {
         background: var(--dark-2);
         border: 1px solid var(--dark-3);
         border-radius: 1rem;
-        padding: 2rem;
+        padding: 2.5rem;
+        margin: 2rem 0;
     }
 
-    .content-body {
-        line-height: 1.7;
-        font-size: 1.1rem;
+    .points-breakdown h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
         color: var(--light);
+        margin-bottom: 2rem;
+        font-size: 1.5rem;
     }
 
-    .content-body p {
-        margin-bottom: 1.5rem;
+    .breakdown-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .breakdown-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: var(--dark-3);
+        border-radius: 0.75rem;
+        border: 1px solid var(--dark-4);
+    }
+
+    .breakdown-item.total {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), transparent);
+        border-color: var(--primary-light);
+    }
+
+    .breakdown-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--dark-4);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: var(--primary-light);
+    }
+
+    .breakdown-item.total .breakdown-icon {
+        background: var(--primary);
+        color: white;
+    }
+
+    .breakdown-content h4 {
+        margin: 0 0 0.25rem 0;
+        color: var(--light);
+        font-size: 1rem;
+    }
+
+    .breakdown-content p {
+        margin: 0;
+        color: var(--light);
+        opacity: 0.7;
+        font-size: 0.85rem;
+    }
+
+    .breakdown-points {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--accent);
+    }
+
+    .breakdown-points.total-points {
+        font-size: 1.5rem;
+        color: var(--primary-light);
     }
 
     .entry-actions {
-        margin-bottom: 2rem;
-    }
-
-    .actions-card {
-        background: var(--dark-2);
-        border: 1px solid var(--dark-3);
-        border-radius: 1rem;
-        padding: 1.5rem;
-    }
-
-    .actions-card h4 {
-        margin: 0 0 1rem 0;
-        color: var(--light);
-        font-size: 1.1rem;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--dark-3);
     }
 
     .action-buttons {
@@ -214,37 +542,88 @@
         flex-wrap: wrap;
     }
 
-    .btn-danger {
-        background: var(--error);
-        color: white;
-        border: none;
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
     }
 
-    .btn-danger:hover {
+    .btn-edit {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .btn-edit:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: var(--error);
+        color: white;
+        border-color: var(--error);
+    }
+
+    .btn-delete:hover {
         background: #dc2626;
         transform: translateY(-2px);
     }
 
-    .mb-6 { margin-bottom: 2rem; }
+    .btn-back {
+        background: transparent;
+        color: var(--light);
+        border-color: var(--dark-3);
+    }
+
+    .btn-back:hover {
+        background: var(--dark-3);
+        transform: translateY(-2px);
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, var(--primary-light), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
 
     @media (max-width: 768px) {
-        .entry-title {
+        .journal-detail-main {
+            padding: 1rem;
+        }
+        
+        .header-content h1 {
             font-size: 2rem;
         }
         
-        .meta-info {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
+        .entry-meta {
+            gap: 1rem;
+        }
+        
+        .entry-content-container,
+        .discovered-words-section,
+        .points-breakdown {
+            padding: 1.5rem;
+        }
+        
+        .words-grid {
+            grid-template-columns: 1fr;
         }
         
         .action-buttons {
             flex-direction: column;
         }
         
-        .action-buttons .btn {
+        .btn {
             width: 100%;
-            text-align: center;
+            justify-content: center;
         }
     }
 </style>

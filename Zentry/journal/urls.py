@@ -13,4 +13,7 @@ urlpatterns = [
     path('search/', views.journal_search, name='journal_search'),
     path('tags/<str:tag>/', views.journal_by_tag, name='journal_by_tag'),
     path('public/', views.public_journals, name='public_journals'),
+    path('points/history/', views.points_history, name='points_history'),
+    path('words/', views.discovered_words, name='discovered_words'),
+    path('points/guide/', views.points_guide, name='points_guide'),
 ]

@@ -82,7 +82,7 @@ class VisionReaction(models.Model):
     vision_board = models.ForeignKey(VisionBoard, on_delete=models.CASCADE, related_name='reactions')
     reactor = models.ForeignKey(User, on_delete=models.CASCADE)
     reaction_type = models.CharField(max_length=20)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
 
 class VisionComment(models.Model):

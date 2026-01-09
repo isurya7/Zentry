@@ -45,7 +45,7 @@ def award_points(user, points, activity_type='task'):
     return profile
 
 def check_streak_reminder(user):
-    """Check if user needs a streak reminder email"""
+    """Check if user needs a streak reminder - sends reminder if no journal today and it's getting late"""
     from journal.models import JournalEntry
     
     profile, created = UserProfile.objects.get_or_create(user=user)
@@ -55,18 +55,19 @@ def check_streak_reminder(user):
         # Check if streak is about to break (no journal today and it's getting late)
         has_journal_today = JournalEntry.objects.filter(
             user=user,
-            created_at__date=today
+            date=today
         ).exists()
         
         if not has_journal_today:
-            # Check if it's evening (after 6 PM) - time to remind
+            # Check if it's afternoon/evening - time to remind
             from datetime import datetime
             current_hour = datetime.now().hour
             
-            if current_hour >= 18:  # 6 PM
+            # Send reminder after 3 PM (15:00) - earlier reminder
+            if current_hour >= 15:  # 3 PM
                 # Check if we already sent reminder today
                 existing_notification = Notification.objects.filter(
-                    user=user,
+                    recipient=user,
                     notification_type='streak_warning',
                     created_at__date=today
                 ).exists()
@@ -76,15 +77,12 @@ def check_streak_reminder(user):
                         Notification.objects.create(
                             recipient=user,
                             title=f"🔥 Don't Break Your {profile.current_streak} Day Streak!",
-                            message=f"You have a {profile.current_streak} day journal streak. Create a journal entry today to keep it going!",
+                            message=f"You have a {profile.current_streak} day journal streak. Create a journal entry today before midnight to keep it going!",
                             notification_type='streak_warning',
                             link='/journal/create/'
                         )
                     except:
                         pass  # Notifications might not be migrated yet
-                    
-                    # Send email reminder (you'll need to implement email sending)
-                    # send_streak_reminder_email(user, profile.current_streak)
                     
                     return True
     

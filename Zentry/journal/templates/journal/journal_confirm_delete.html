@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Journal Entry - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .delete-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .delete-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        border: 2px solid var(--error);
+        text-align: center;
+    }
+    
+    .delete-icon {
+        font-size: 5rem;
+        color: var(--error);
+        margin-bottom: 1.5rem;
+    }
+    
+    .delete-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--light);
+        margin-bottom: 1rem;
+    }
+    
+    .delete-message {
+        color: var(--light);
+        opacity: 0.9;
+        line-height: 1.8;
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+    
+    .entry-preview {
+        background-color: var(--dark-3);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: left;
+    }
+    
+    .entry-preview h3 {
+        color: var(--primary-light);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .entry-preview-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--dark-2);
+    }
+    
+    .entry-preview-item:last-child {
+        border-bottom: none;
+    }
+    
+    .preview-label {
+        color: var(--light);
+        opacity: 0.8;
+    }
+    
+    .preview-value {
+        color: var(--light);
+        font-weight: 600;
+    }
+    
+    .points-warning {
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 2px solid var(--error);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: left;
+    }
+    
+    .points-warning h4 {
+        color: var(--error);
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .points-warning p {
+        color: var(--light);
+        opacity: 0.9;
+        margin: 0;
+        line-height: 1.6;
+    }
+    
+    .delete-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn-danger {
+        background-color: var(--error);
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background-color: #dc2626;
+    }
+    
+    .btn-secondary {
+        background-color: var(--dark-3);
+        color: var(--light);
+    }
+    
+    .btn-secondary:hover {
+        background-color: var(--dark-2);
+    }
+</style>
+
+<div class="delete-container">
+    <div class="delete-card">
+        <div class="delete-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h1 class="delete-title">Delete Journal Entry?</h1>
+        
+        <p class="delete-message">
+            Are you sure you want to delete this journal entry? This action cannot be undone.
+        </p>
+        
+        <div class="entry-preview">
+            <h3><i class="fas fa-book"></i> {{ entry.title }}</h3>
+            <div class="entry-preview-item">
+                <span class="preview-label">Date:</span>
+                <span class="preview-value">{{ entry.date|date:"F d, Y" }}</span>
+            </div>
+            <div class="entry-preview-item">
+                <span class="preview-label">Content:</span>
+                <span class="preview-value">{{ entry.content|truncatewords:10 }}...</span>
+            </div>
+        </div>
+        
+        {% if points_to_deduct > 0 %}
+        <div class="points-warning">
+            <h4><i class="fas fa-exclamation-circle"></i> Points Will Be Deducted</h4>
+            <p>
+                <strong>{{ points_to_deduct }} points</strong> will be deducted from your total points. 
+                This includes all points earned from this journal entry (base points, word discovery points, and streak bonuses).
+            </p>
+        </div>
+        {% endif %}
+        
+        <form method="post" style="display: contents;">
+            {% csrf_token %}
+            <div class="delete-actions">
+                <button type="submit" class="btn btn-danger" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                    <i class="fas fa-trash"></i> Yes, Delete Entry
+                </button>
+                <a href="{% url 'journal:view_journal' entry.id %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

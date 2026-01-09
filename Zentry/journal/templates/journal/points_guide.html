@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Points System Guide - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .guide-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .guide-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .guide-header h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+    }
+    
+    .guide-header p {
+        font-size: 1.1rem;
+        color: var(--light);
+        opacity: 0.8;
+    }
+    
+    .points-intro {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        color: white;
+    }
+    
+    .points-intro h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .points-intro p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        line-height: 1.6;
+    }
+    
+    .section {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--dark-3);
+    }
+    
+    .section-title i {
+        color: var(--primary-light);
+    }
+    
+    .points-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .point-item {
+        background-color: var(--dark-3);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1.5rem;
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--primary);
+    }
+    
+    .point-item:hover {
+        border-left-color: var(--accent);
+        transform: translateX(5px);
+    }
+    
+    .point-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .point-content {
+        flex: 1;
+    }
+    
+    .point-action {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .point-value {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--accent);
+        border-radius: 0.5rem;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-left: 0.5rem;
+    }
+    
+    .point-description {
+        color: var(--light);
+        opacity: 0.8;
+        line-height: 1.6;
+        margin-top: 0.5rem;
+    }
+    
+    .highlight-box {
+        background: rgba(16, 185, 129, 0.1);
+        border: 2px solid var(--success);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .highlight-box h4 {
+        color: var(--success);
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .warning-box {
+        background: rgba(239, 68, 68, 0.1);
+        border: 2px solid var(--error);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .warning-box h4 {
+        color: var(--error);
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .tips-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .tip-card {
+        background-color: var(--dark-3);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        border-left: 3px solid var(--primary-light);
+    }
+    
+    .tip-card h5 {
+        color: var(--primary-light);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+    
+    .tip-card p {
+        color: var(--light);
+        opacity: 0.9;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+</style>
+
+<div class="guide-container">
+    <div class="guide-header">
+        <h1><i class="fas fa-star"></i> Points System Guide</h1>
+        <p>Learn how to earn points and maximize your productivity rewards!</p>
+    </div>
+    
+    <div class="points-intro">
+        <h2>🎯 Your Points Journey</h2>
+        <p>Earn points for every activity you complete. Track your progress, unlock achievements, and compete on the leaderboard!</p>
+    </div>
+    
+    {% for category_key, category_data in guide_data.items %}
+    <div class="section">
+        <h2 class="section-title">
+            {% if category_key == 'journal' %}
+            <i class="fas fa-book"></i>
+            {% elif category_key == 'tasks' %}
+            <i class="fas fa-tasks"></i>
+            {% elif category_key == 'visions' %}
+            <i class="fas fa-bullseye"></i>
+            {% elif category_key == 'deductions' %}
+            <i class="fas fa-exclamation-triangle"></i>
+            {% endif %}
+            {{ category_data.title }}
+        </h2>
+        
+        <div class="points-list">
+            {% for item in category_data.items %}
+            <div class="point-item">
+                <div class="point-icon">
+                    {% if 'journal' in item.action.lower %}
+                    <i class="fas fa-book"></i>
+                    {% elif 'word' in item.action.lower %}
+                    <i class="fas fa-book-open"></i>
+                    {% elif 'streak' in item.action.lower %}
+                    <i class="fas fa-fire"></i>
+                    {% elif 'task' in item.action.lower %}
+                    <i class="fas fa-check-circle"></i>
+                    {% elif 'vision' in item.action.lower %}
+                    <i class="fas fa-trophy"></i>
+                    {% elif 'delete' in item.action.lower %}
+                    <i class="fas fa-trash"></i>
+                    {% else %}
+                    <i class="fas fa-star"></i>
+                    {% endif %}
+                </div>
+                <div class="point-content">
+                    <div class="point-action">
+                        {{ item.action }}
+                        <span class="point-value">{{ item.points }}</span>
+                    </div>
+                    <p class="point-description">{{ item.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if category_key == 'journal' %}
+        <div class="highlight-box">
+            <h4><i class="fas fa-lightbulb"></i> Pro Tip</h4>
+            <p>Use diverse vocabulary in your journals to discover more high-level words. Longer, complex words often earn you extra points!</p>
+        </div>
+        
+        <div class="tips-grid">
+            <div class="tip-card">
+                <h5>🔥 Streak Bonus</h5>
+                <p>Maintain your journaling streak! Every 10 consecutive days earns you a bonus +20 points. Keep the momentum going!</p>
+            </div>
+            <div class="tip-card">
+                <h5>📚 Word Discovery</h5>
+                <p>High-level words are automatically detected. Words with complex structures, multiple syllables, or uncommon patterns earn +1 point each.</p>
+            </div>
+            <div class="tip-card">
+                <h5>💡 Meaning Lookup</h5>
+                <p>Discover word meanings automatically powered by Gemini AI. Learn as you write and expand your vocabulary!</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if category_key == 'deductions' %}
+        <div class="warning-box">
+            <h4><i class="fas fa-exclamation-circle"></i> Important Note</h4>
+            <p>When you delete a journal entry, <strong>all points</strong> earned from that entry (base points, word discovery points, and streak bonuses) will be deducted from your total. This includes points from that specific entry only.</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    <div class="section">
+        <h2 class="section-title">
+            <i class="fas fa-question-circle"></i> Frequently Asked Questions
+        </h2>
+        
+        <div class="points-list">
+            <div class="point-item">
+                <div class="point-icon">
+                    <i class="fas fa-question"></i>
+                </div>
+                <div class="point-content">
+                    <div class="point-action">How are high-level words detected?</div>
+                    <p class="point-description">Our system analyzes word length, complexity, syllable count, and linguistic patterns to identify sophisticated vocabulary. Words longer than 6 characters with complex structures are typically classified as high-level.</p>
+                </div>
+            </div>
+            
+            <div class="point-item">
+                <div class="point-icon">
+                    <i class="fas fa-question"></i>
+                </div>
+                <div class="point-content">
+                    <div class="point-action">What happens if I miss a day in my streak?</div>
+                    <p class="point-description">Your streak resets to 1 if you miss a day. However, you can start a new streak immediately. Remember, every 10-day milestone earns bonus points!</p>
+                </div>
+            </div>
+            
+            <div class="point-item">
+                <div class="point-icon">
+                    <i class="fas fa-question"></i>
+                </div>
+                <div class="point-content">
+                    <div class="point-action">Can I see my points history?</div>
+                    <p class="point-description">Yes! Visit the Points History page to see all your transactions, including when and how you earned or lost points. You can filter by activity type and track your progress over time.</p>
+                </div>
+            </div>
+            
+            <div class="point-item">
+                <div class="point-icon">
+                    <i class="fas fa-question"></i>
+                </div>
+                <div class="point-content">
+                    <div class="point-action">Are points shared across all activities?</div>
+                    <p class="point-description">Yes! Points from journal entries, tasks, vision boards, and all other activities contribute to your total points. View your complete points history to see the breakdown.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 3rem;">
+        <a href="{% url 'journal:points_history' %}" class="btn btn-primary" style="margin-right: 1rem;">
+            <i class="fas fa-history"></i> View My Points History
+        </a>
+        <a href="{% url 'journal:discovered_words' %}" class="btn btn-outline">
+            <i class="fas fa-book"></i> View Discovered Words
+        </a>
+    </div>
+</div>
+{% endblock %}

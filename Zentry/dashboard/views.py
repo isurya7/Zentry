@@ -5,9 +5,10 @@ from django.db.models import Sum, Count
 from datetime import timedelta, datetime
 from accounts.models import UserProfile
 from tasks.models import DailyTask
-from journal.models import JournalEntry
+from journal.models import JournalEntry, PointTransaction, DiscoveredWord
 from notifications.models import Notification
 from tasks.utils import check_streak_reminder
+from django.db.models import Sum, Count
 
 @login_required
 def dashboard(request):
@@ -149,6 +150,15 @@ def dashboard(request):
     except:
         unread_messages_count = 0
 
+    # Get recent points transactions
+    recent_transactions = PointTransaction.objects.filter(user=request.user).order_by('-created_at')[:5]
+    
+    # Get word discovery stats
+    total_words = DiscoveredWord.objects.filter(user=request.user).count()
+    high_level_words = DiscoveredWord.objects.filter(user=request.user, is_high_level=True).count()
+    word_points_total = DiscoveredWord.objects.filter(user=request.user).aggregate(total=Sum('points_earned'))['total'] or 0
+    recent_words = DiscoveredWord.objects.filter(user=request.user).order_by('-discovered_date', '-created_at')[:5]
+    
     # Pass context to the template
     context = {
         'profile': profile,
@@ -179,5 +189,10 @@ def dashboard(request):
         'performance_data': performance_data_json,
         'leaderboard': top_users,
         'user_rank': user_rank,
+        'recent_transactions': recent_transactions,
+        'total_words': total_words,
+        'high_level_words': high_level_words,
+        'word_points_total': word_points_total,
+        'recent_words': recent_words,
     }
     return render(request, 'dashboard/dashboard.html', context)

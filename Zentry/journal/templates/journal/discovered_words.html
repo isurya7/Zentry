@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Discovered Words - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .words-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .words-header {
+        margin-bottom: 2rem;
+    }
+    
+    .words-header h1 {
+        font-size: 2.2rem;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-box {
+        background-color: var(--dark-2);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        border: 1px solid var(--dark-3);
+        text-align: center;
+    }
+    
+    .stat-box h3 {
+        font-size: 0.9rem;
+        color: var(--light);
+        opacity: 0.8;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-light);
+    }
+    
+    .words-section {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .words-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .word-card {
+        background-color: var(--dark-3);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        border: 2px solid var(--dark-2);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .word-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(109, 40, 217, 0.2);
+    }
+    
+    .word-card.high-level {
+        border-color: var(--accent);
+        background: rgba(245, 158, 11, 0.05);
+    }
+    
+    .word-card.high-level::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent), var(--primary-light));
+        border-radius: 0.75rem 0.75rem 0 0;
+    }
+    
+    .word-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .word-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-light);
+        margin: 0;
+        text-transform: capitalize;
+        letter-spacing: 0.5px;
+    }
+    
+    .word-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.4rem 0.8rem;
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--accent);
+        border-radius: 1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .word-meaning {
+        color: var(--light);
+        opacity: 0.9;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        padding: 1rem;
+        background-color: var(--dark-2);
+        border-radius: 0.5rem;
+        border-left: 3px solid var(--primary);
+    }
+    
+    .word-meaning.loading {
+        opacity: 0.6;
+        font-style: italic;
+        text-align: center;
+    }
+    
+    .word-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--dark-2);
+    }
+    
+    .word-date {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--light);
+        opacity: 0.7;
+        font-size: 0.85rem;
+    }
+    
+    .word-points {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--accent);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+        color: var(--primary-light);
+    }
+    
+    .filter-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .filter-tab {
+        padding: 0.75rem 1.5rem;
+        background-color: var(--dark-3);
+        border: 1px solid var(--dark-2);
+        border-radius: 0.5rem;
+        color: var(--light);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .filter-tab:hover,
+    .filter-tab.active {
+        background-color: var(--primary);
+        border-color: var(--primary-light);
+        color: white;
+    }
+</style>
+
+<div class="words-container">
+    <div class="words-header">
+        <h1><i class="fas fa-book"></i> Discovered Words</h1>
+        <p style="color: var(--light); opacity: 0.8;">All the words you've discovered while journaling</p>
+    </div>
+    
+    <div class="stats-bar">
+        <div class="stat-box">
+            <h3>Total Words</h3>
+            <div class="stat-number">{{ total_words }}</div>
+        </div>
+        <div class="stat-box">
+            <h3>High-Level Words</h3>
+            <div class="stat-number">{{ high_level_words }}</div>
+        </div>
+        <div class="stat-box">
+            <h3>Points from Words</h3>
+            <div class="stat-number" style="color: var(--accent);">+{{ total_word_points }}</div>
+        </div>
+    </div>
+    
+    <div class="words-section">
+        <h2 class="section-title">
+            <i class="fas fa-list"></i> All Discovered Words
+        </h2>
+        
+        {% if words %}
+        <div class="words-grid">
+            {% for word_obj in words %}
+            <div class="word-card {% if word_obj.is_high_level %}high-level{% endif %}">
+                <div class="word-header">
+                    <h3 class="word-title">{{ word_obj.word|title }}</h3>
+                    {% if word_obj.is_high_level %}
+                    <span class="word-badge">
+                        <i class="fas fa-star"></i> +1
+                    </span>
+                    {% endif %}
+                </div>
+                {% if word_obj.meaning %}
+                <div class="word-meaning">{{ word_obj.meaning }}</div>
+                {% else %}
+                <div class="word-meaning loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading meaning...
+                </div>
+                {% endif %}
+                <div class="word-footer">
+                    <div class="word-date">
+                        <i class="fas fa-calendar"></i> {{ word_obj.discovered_date|date:"M d, Y" }}
+                    </div>
+                    {% if word_obj.points_earned > 0 %}
+                    <div class="word-points">
+                        <i class="fas fa-star"></i> +{{ word_obj.points_earned }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-book-open"></i>
+            <h3>No words discovered yet</h3>
+            <p>Start writing journal entries to discover new words and earn points!</p>
+            <a href="{% url 'journal:create_journal' %}" class="btn btn-primary" style="margin-top: 1.5rem;">
+                <i class="fas fa-plus"></i> Create Journal Entry
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

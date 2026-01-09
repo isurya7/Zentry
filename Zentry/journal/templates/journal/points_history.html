@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Points History - Zentry{% endblock %}
+
+{% block content %}
+<style>
+    .history-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .history-header {
+        margin-bottom: 2rem;
+    }
+    
+    .history-header h1 {
+        font-size: 2.2rem;
+        background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .summary-card {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        border: 1px solid var(--dark-3);
+        text-align: center;
+    }
+    
+    .summary-card h3 {
+        font-size: 0.9rem;
+        color: var(--light);
+        opacity: 0.8;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .summary-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--light);
+    }
+    
+    .summary-value.earned {
+        color: var(--success);
+    }
+    
+    .summary-value.deducted {
+        color: var(--error);
+    }
+    
+    .summary-value.net {
+        color: var(--accent);
+    }
+    
+    .transactions-section {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .transactions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .transaction-item {
+        background-color: var(--dark-3);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-left: 4px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .transaction-item:hover {
+        border-color: var(--primary);
+        transform: translateX(5px);
+    }
+    
+    .transaction-item.earned {
+        border-left-color: var(--success);
+    }
+    
+    .transaction-item.deducted {
+        border-left-color: var(--error);
+    }
+    
+    .transaction-info {
+        flex: 1;
+    }
+    
+    .transaction-type {
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 0.25rem;
+        font-size: 1rem;
+    }
+    
+    .transaction-description {
+        color: var(--light);
+        opacity: 0.8;
+        font-size: 0.9rem;
+    }
+    
+    .transaction-date {
+        color: var(--light);
+        opacity: 0.6;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+    
+    .transaction-points {
+        font-size: 1.3rem;
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+    }
+    
+    .transaction-points.positive {
+        color: var(--success);
+        background-color: rgba(16, 185, 129, 0.1);
+    }
+    
+    .transaction-points.negative {
+        color: var(--error);
+        background-color: rgba(239, 68, 68, 0.1);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .by-type-section {
+        margin-top: 2rem;
+    }
+    
+    .type-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .type-card {
+        background-color: var(--dark-3);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .type-card h4 {
+        font-size: 0.9rem;
+        color: var(--light);
+        opacity: 0.8;
+        margin-bottom: 0.5rem;
+    }
+    
+    .type-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .type-count {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--light);
+    }
+    
+    .type-points {
+        font-size: 1rem;
+        color: var(--accent);
+        font-weight: 600;
+    }
+</style>
+
+<div class="history-container">
+    <div class="history-header">
+        <h1><i class="fas fa-history"></i> Points History</h1>
+        <p style="color: var(--light); opacity: 0.8;">Track all your point earnings and deductions</p>
+    </div>
+    
+    <div class="summary-cards">
+        <div class="summary-card">
+            <h3>Total Earned</h3>
+            <div class="summary-value earned">+{{ total_earned }}</div>
+        </div>
+        <div class="summary-card">
+            <h3>Total Deducted</h3>
+            <div class="summary-value deducted">-{{ total_deducted }}</div>
+        </div>
+        <div class="summary-card">
+            <h3>Net Points</h3>
+            <div class="summary-value net">{{ net_points }}</div>
+        </div>
+        <div class="summary-card">
+            <h3>Total Transactions</h3>
+            <div class="summary-value">{{ transactions|length }}</div>
+        </div>
+    </div>
+    
+    <div class="transactions-section">
+        <h2 class="section-title">
+            <i class="fas fa-list"></i> Recent Transactions
+        </h2>
+        
+        {% if transactions %}
+        <div class="transactions-list">
+            {% for transaction in transactions %}
+            <div class="transaction-item {% if transaction.points > 0 %}earned{% else %}deducted{% endif %}">
+                <div class="transaction-info">
+                    <div class="transaction-type">{{ transaction.get_transaction_type_display }}</div>
+                    <div class="transaction-description">{{ transaction.description }}</div>
+                    <div class="transaction-date">
+                        <i class="fas fa-clock"></i> {{ transaction.created_at|date:"M d, Y g:i A" }}
+                    </div>
+                </div>
+                <div class="transaction-points {% if transaction.points > 0 %}positive{% else %}negative{% endif %}">
+                    {% if transaction.points > 0 %}+{% endif %}{{ transaction.points }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No transactions yet</h3>
+            <p>Start earning points by creating journal entries, completing tasks, and more!</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if by_type %}
+    <div class="transactions-section by-type-section">
+        <h2 class="section-title">
+            <i class="fas fa-chart-pie"></i> Summary by Type
+        </h2>
+        <div class="type-grid">
+            {% for type_name, stats in by_type.items %}
+            <div class="type-card">
+                <h4>{{ type_name }}</h4>
+                <div class="type-stats">
+                    <div class="type-count">{{ stats.count }} transaction{{ stats.count|pluralize }}</div>
+                    <div class="type-points">{% if stats.points > 0 %}+{% endif %}{{ stats.points }} points</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 2rem; text-align: center;">
+        <a href="{% url 'journal:points_guide' %}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-info-circle"></i> View Points Guide
+        </a>
+    </div>
+</div>
+{% endblock %}

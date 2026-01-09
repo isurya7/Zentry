@@ -267,6 +267,185 @@
         height: 100% !important;
     }
     
+    /* Points History Styles */
+    .transactions-list-compact {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .transaction-item-compact {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background-color: var(--dark-3);
+        border-radius: 0.5rem;
+        border-left: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .transaction-item-compact:hover {
+        transform: translateX(3px);
+    }
+    
+    .transaction-item-compact.earned {
+        border-left-color: var(--success);
+    }
+    
+    .transaction-item-compact.deducted {
+        border-left-color: var(--error);
+    }
+    
+    .transaction-icon {
+        width: 40px;
+        height: 40px;
+        background-color: var(--dark-2);
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-light);
+        flex-shrink: 0;
+    }
+    
+    .transaction-info-compact {
+        flex: 1;
+    }
+    
+    .transaction-type-compact {
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 0.25rem;
+        font-size: 0.95rem;
+    }
+    
+    .transaction-desc-compact {
+        color: var(--light);
+        opacity: 0.8;
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .transaction-date-compact {
+        color: var(--light);
+        opacity: 0.6;
+        font-size: 0.75rem;
+    }
+    
+    .transaction-points-compact {
+        font-size: 1.1rem;
+        font-weight: 700;
+        padding: 0.4rem 0.8rem;
+        border-radius: 0.4rem;
+    }
+    
+    .transaction-points-compact.positive {
+        color: var(--success);
+        background-color: rgba(16, 185, 129, 0.1);
+    }
+    
+    .transaction-points-compact.negative {
+        color: var(--error);
+        background-color: rgba(239, 68, 68, 0.1);
+    }
+    
+    /* Word Discoveries Styles */
+    .words-stats-bar {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .word-stat-item {
+        background-color: var(--dark-3);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .word-stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary-light);
+        margin-bottom: 0.25rem;
+    }
+    
+    .word-stat-label {
+        color: var(--light);
+        opacity: 0.8;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .words-list-compact {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .word-item-compact {
+        background-color: var(--dark-3);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        border-left: 3px solid var(--primary);
+        transition: all 0.3s ease;
+    }
+    
+    .word-item-compact:hover {
+        transform: translateX(3px);
+    }
+    
+    .word-item-compact.high-level {
+        border-left-color: var(--accent);
+        background-color: rgba(245, 158, 11, 0.05);
+    }
+    
+    .word-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .word-title-compact {
+        font-weight: 600;
+        color: var(--primary-light);
+        font-size: 1rem;
+        text-transform: capitalize;
+    }
+    
+    .word-badge-compact {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.6rem;
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--accent);
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .word-meaning-compact {
+        color: var(--light);
+        opacity: 0.9;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+    }
+    
+    .word-date-compact {
+        color: var(--light);
+        opacity: 0.7;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1001,6 +1180,109 @@
                     <i class="fas fa-check-circle"></i>
                     <p>No pending tasks. Great job!</p>
                 </div>
+            {% endif %}
+        </div>
+        
+        <!-- Points History Section -->
+        <div class="content-section">
+            <div class="section-header">
+                <h2><i class="fas fa-history"></i> Recent Points Activity</h2>
+                <a href="{% url 'journal:points_history' %}" class="view-all">View Full History</a>
+            </div>
+            
+            {% if recent_transactions %}
+            <div class="transactions-list-compact">
+                {% for transaction in recent_transactions %}
+                <div class="transaction-item-compact {% if transaction.points > 0 %}earned{% else %}deducted{% endif %}">
+                    <div class="transaction-icon">
+                        {% if transaction.transaction_type == 'journal_entry' %}
+                        <i class="fas fa-book"></i>
+                        {% elif transaction.transaction_type == 'word_discovery' %}
+                        <i class="fas fa-book-open"></i>
+                        {% elif transaction.transaction_type == 'streak_milestone' %}
+                        <i class="fas fa-fire"></i>
+                        {% elif transaction.transaction_type == 'task_completion' %}
+                        <i class="fas fa-check-circle"></i>
+                        {% elif transaction.transaction_type == 'vision_achieved' %}
+                        <i class="fas fa-trophy"></i>
+                        {% elif transaction.transaction_type == 'journal_deleted' %}
+                        <i class="fas fa-trash"></i>
+                        {% else %}
+                        <i class="fas fa-star"></i>
+                        {% endif %}
+                    </div>
+                    <div class="transaction-info-compact">
+                        <div class="transaction-type-compact">{{ transaction.get_transaction_type_display }}</div>
+                        <div class="transaction-desc-compact">{{ transaction.description|truncatewords:8 }}</div>
+                        <div class="transaction-date-compact">{{ transaction.created_at|timesince }} ago</div>
+                    </div>
+                    <div class="transaction-points-compact {% if transaction.points > 0 %}positive{% else %}negative{% endif %}">
+                        {% if transaction.points > 0 %}+{% endif %}{{ transaction.points }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No transactions yet. Start earning points!</p>
+            </div>
+            {% endif %}
+            <div style="margin-top: 1rem; text-align: center;">
+                <a href="{% url 'journal:points_guide' %}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-info-circle"></i> View Points Guide
+                </a>
+            </div>
+        </div>
+        
+        <!-- Discovered Words Section -->
+        <div class="content-section">
+            <div class="section-header">
+                <h2><i class="fas fa-book"></i> Word Discoveries</h2>
+                <a href="{% url 'journal:discovered_words' %}" class="view-all">View All Words</a>
+            </div>
+            
+            <div class="words-stats-bar">
+                <div class="word-stat-item">
+                    <div class="word-stat-number">{{ total_words }}</div>
+                    <div class="word-stat-label">Total Words</div>
+                </div>
+                <div class="word-stat-item">
+                    <div class="word-stat-number">{{ high_level_words }}</div>
+                    <div class="word-stat-label">High-Level</div>
+                </div>
+                <div class="word-stat-item">
+                    <div class="word-stat-number" style="color: var(--accent);">+{{ word_points_total }}</div>
+                    <div class="word-stat-label">Points Earned</div>
+                </div>
+            </div>
+            
+            {% if recent_words %}
+            <div class="words-list-compact">
+                {% for word_obj in recent_words|slice:":5" %}
+                <div class="word-item-compact {% if word_obj.is_high_level %}high-level{% endif %}">
+                    <div class="word-item-header">
+                        <span class="word-title-compact">{{ word_obj.word|title }}</span>
+                        {% if word_obj.is_high_level %}
+                        <span class="word-badge-compact">
+                            <i class="fas fa-star"></i> +1
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if word_obj.meaning %}
+                    <div class="word-meaning-compact">{{ word_obj.meaning|truncatewords:15 }}</div>
+                    {% endif %}
+                    <div class="word-date-compact">
+                        <i class="fas fa-calendar"></i> {{ word_obj.discovered_date|date:"M d, Y" }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-book-open"></i>
+                <p>No words discovered yet. Write journal entries to discover new words!</p>
+            </div>
             {% endif %}
         </div>
         
