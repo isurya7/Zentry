@@ -1,0 +1,834 @@
+<!-- accounts/templates/accounts/search_results.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} | Zentry{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <!-- Search Header -->
+    <div class="search-header">
+        <h1>{% if query %}Search Results for "{{ query }}"{% else %}Search Zentry{% endif %}</h1>
+        
+        <form method="GET" action="{% url 'accounts:search' %}" class="search-form-main">
+            <div class="search-input-group">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search users, journals, visions, posts..." class="search-input-main">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+            
+            <div class="search-filters">
+                <label class="filter-label">
+                    <input type="radio" name="type" value="all" {% if search_type == 'all' %}checked{% endif %} onchange="this.form.submit()">
+                    <span>All</span>
+                </label>
+                <label class="filter-label">
+                    <input type="radio" name="type" value="users" {% if search_type == 'users' %}checked{% endif %} onchange="this.form.submit()">
+                    <span>Users</span>
+                </label>
+                <label class="filter-label">
+                    <input type="radio" name="type" value="journals" {% if search_type == 'journals' %}checked{% endif %} onchange="this.form.submit()">
+                    <span>Journals</span>
+                </label>
+                <label class="filter-label">
+                    <input type="radio" name="type" value="visions" {% if search_type == 'visions' %}checked{% endif %} onchange="this.form.submit()">
+                    <span>Visions</span>
+                </label>
+                <label class="filter-label">
+                    <input type="radio" name="type" value="posts" {% if search_type == 'posts' %}checked{% endif %} onchange="this.form.submit()">
+                    <span>Posts</span>
+                </label>
+            </div>
+        </form>
+    </div>
+
+    <div class="search-layout">
+        <!-- Main Results -->
+        <div class="search-results-main">
+            {% if query %}
+                <!-- Users Results -->
+                {% if results.users %}
+                <section class="results-section">
+                    <h2><i class="fas fa-users"></i> Users ({{ results.users|length }})</h2>
+                    <div class="users-grid">
+                        {% for result in results.users %}
+                        <div class="user-search-card">
+                            <a href="{% url 'accounts:public_profile' result.profile.user.username %}" class="user-card-link">
+                                <div class="user-avatar">
+                                    {% if result.profile.pfp %}
+                                    <img src="{{ result.profile.pfp.url }}" alt="{{ result.profile.user.username }}">
+                                    {% else %}
+                                    <div class="avatar-default">{{ result.profile.user.username|first|upper }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="user-info">
+                                    <h3>{{ result.profile.user.get_full_name|default:result.profile.user.username }}</h3>
+                                    <p class="username">@{{ result.profile.user.username }}</p>
+                                    
+                                    {% if result.mutual_friends > 0 %}
+                                    <p class="mutual-friends">
+                                        <i class="fas fa-user-friends"></i> {{ result.mutual_friends }} mutual friend{{ result.mutual_friends|pluralize }}
+                                    </p>
+                                    {% endif %}
+                                    
+                                    {% if result.can_see_points %}
+                                    <div class="user-points">
+                                        <i class="fas fa-star"></i> {{ result.profile.total_points }} points
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </a>
+                            
+                            <div class="user-actions">
+                                {% if result.is_friend %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check"></i> Friends
+                                </span>
+                                {% elif result.friend_request_sent %}
+                                <span class="badge badge-warning">
+                                    <i class="fas fa-clock"></i> Request Sent
+                                </span>
+                                {% elif result.friend_request_received %}
+                                <a href="{% url 'accounts:respond_friend_request' %}?user_id={{ result.profile.user.id }}" class="btn btn-sm btn-success">
+                                    Accept Request
+                                </a>
+                                {% else %}
+                                <form method="POST" action="{% url 'accounts:send_friend_request' result.profile.user.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-user-plus"></i> Add Friend
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- Journals Results -->
+                {% if results.journals %}
+                <section class="results-section">
+                    <h2><i class="fas fa-book"></i> Journals ({{ results.journals|length }})</h2>
+                    <div class="journals-list">
+                        {% for journal in results.journals %}
+                        <div class="journal-search-card">
+                            <div class="journal-header">
+                                <a href="{% url 'accounts:public_profile' journal.user.username %}" class="journal-author">
+                                    {% if journal.user.userprofile.pfp %}
+                                    <img src="{{ journal.user.userprofile.pfp.url }}" alt="{{ journal.user.username }}" class="author-avatar">
+                                    {% else %}
+                                    <div class="author-avatar default">{{ journal.user.username|first|upper }}</div>
+                                    {% endif %}
+                                    <span>{{ journal.user.username }}</span>
+                                </a>
+                                <span class="journal-date">{{ journal.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <h3><a href="{% url 'journal:view_journal' journal.id %}">{{ journal.title }}</a></h3>
+                            <p class="journal-excerpt">{{ journal.content|striptags|truncatewords:50 }}</p>
+                            <div class="journal-footer">
+                                {% if journal.mood %}
+                                <span class="mood-tag">{{ journal.get_mood_display }}</span>
+                                {% endif %}
+                                <span class="points-earned">
+                                    <i class="fas fa-star"></i> +5 points
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- Visions Results -->
+                {% if results.visions %}
+                <section class="results-section">
+                    <h2><i class="fas fa-bullseye"></i> Vision Boards ({{ results.visions|length }})</h2>
+                    <div class="visions-grid">
+                        {% for vision in results.visions %}
+                        <div class="vision-search-card">
+                            <a href="{% url 'visionboard:view_vision' vision.id %}" class="vision-link">
+                                {% if vision.cover_image %}
+                                <div class="vision-cover">
+                                    <img src="{{ vision.cover_image.url }}" alt="{{ vision.title }}">
+                                </div>
+                                {% endif %}
+                                <div class="vision-info">
+                                    <h3>{{ vision.title }}</h3>
+                                    <p class="vision-description">{{ vision.description|truncatewords:30 }}</p>
+                                    <div class="vision-meta">
+                                        <span class="vision-author">
+                                            <i class="fas fa-user"></i> {{ vision.user.username }}
+                                        </span>
+                                        <span class="vision-points">
+                                            <i class="fas fa-star"></i> {{ vision.points }} points
+                                        </span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- Posts Results -->
+                {% if results.posts %}
+                <section class="results-section">
+                    <h2><i class="fas fa-newspaper"></i> Posts ({{ results.posts|length }})</h2>
+                    <div class="posts-list">
+                        {% for post in results.posts %}
+                        <div class="post-search-card">
+                            <div class="post-header">
+                                <a href="{% url 'accounts:public_profile' post.user.username %}" class="post-author">
+                                    {% if post.user.userprofile.pfp %}
+                                    <img src="{{ post.user.userprofile.pfp.url }}" alt="{{ post.user.username }}" class="author-avatar">
+                                    {% else %}
+                                    <div class="author-avatar default">{{ post.user.username|first|upper }}</div>
+                                    {% endif %}
+                                    <div class="author-info">
+                                        <strong>{{ post.user.username }}</strong>
+                                        <span>{{ post.created_at|timesince }} ago</span>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="post-content">
+                                <h3>{{ post.title }}</h3>
+                                <p>{{ post.content|truncatewords:100 }}</p>
+                            </div>
+                            <div class="post-footer">
+                                <div class="post-stats">
+                                    <span><i class="far fa-heart"></i> {{ post.likes.count }}</span>
+                                    <span><i class="far fa-comment"></i> {{ post.comments.count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if not results.users and not results.journals and not results.visions and not results.posts %}
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h3>No results found for "{{ query }}"</h3>
+                    <p>Try different keywords or check your spelling.</p>
+                </div>
+                {% endif %}
+            {% else %}
+                <!-- Search Instructions -->
+                <div class="search-instructions">
+                    <div class="instruction-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Find Users</h3>
+                        <p>Search for friends by username, first name, or last name</p>
+                    </div>
+                    <div class="instruction-card">
+                        <i class="fas fa-book"></i>
+                        <h3>Discover Journals</h3>
+                        <p>Find public journal entries by title, content, or tags</p>
+                    </div>
+                    <div class="instruction-card">
+                        <i class="fas fa-bullseye"></i>
+                        <h3>Explore Visions</h3>
+                        <p>Discover public vision boards and their progress</p>
+                    </div>
+                    <div class="instruction-card">
+                        <i class="fas fa-newspaper"></i>
+                        <h3>Browse Posts</h3>
+                        <p>See achievement posts from the community</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar with Friend Suggestions -->
+        <div class="search-sidebar">
+            {% if friend_suggestions %}
+            <div class="sidebar-section">
+                <h3><i class="fas fa-user-plus"></i> Friend Suggestions</h3>
+                <div class="suggestions-list">
+                    {% for suggestion in friend_suggestions %}
+                    <div class="suggestion-card">
+                        <a href="{% url 'accounts:public_profile' suggestion.profile.user.username %}" class="suggestion-link">
+                            <div class="suggestion-avatar">
+                                {% if suggestion.profile.pfp %}
+                                <img src="{{ suggestion.profile.pfp.url }}" alt="{{ suggestion.profile.user.username }}">
+                                {% else %}
+                                <div class="avatar-default">{{ suggestion.profile.user.username|first|upper }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="suggestion-info">
+                                <strong>{{ suggestion.profile.user.username }}</strong>
+                                {% if suggestion.mutual_friends > 0 %}
+                                <small>{{ suggestion.mutual_friends }} mutual friend{{ suggestion.mutual_friends|pluralize }}</small>
+                                {% endif %}
+                            </div>
+                        </a>
+                        <div class="suggestion-action">
+                            {% if suggestion.request_sent %}
+                            <span class="badge badge-warning">Sent</span>
+                            {% elif suggestion.request_received %}
+                            <a href="{% url 'accounts:respond_friend_request' %}?user_id={{ suggestion.profile.user.id }}" class="btn btn-xs btn-success">Accept</a>
+                            {% else %}
+                            <form method="POST" action="{% url 'accounts:send_friend_request' suggestion.profile.user.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-xs btn-primary">
+                                    <i class="fas fa-user-plus"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'accounts:friend_suggestions' %}" class="btn btn-outline btn-block">
+                    View All Suggestions
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="sidebar-section">
+                <h3><i class="fas fa-lightbulb"></i> Search Tips</h3>
+                <ul class="tips-list">
+                    <li>Use quotes for exact matches: "morning routine"</li>
+                    <li>Filter by type using the tabs above</li>
+                    <li>Free users can search users and public content</li>
+                    <li>Pro users get advanced search filters</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.search-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.search-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.search-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.search-form-main {
+    max-width: 800px;
+    margin: 0 auto 2rem;
+}
+
+.search-input-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.search-input-main {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border-radius: 2rem;
+    background-color: var(--dark-2);
+    border: 2px solid var(--dark-3);
+    color: var(--light);
+    font-size: 1rem;
+}
+
+.search-filters {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background-color: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    transition: all 0.3s ease;
+}
+
+.filter-label:hover {
+    border-color: var(--primary);
+}
+
+.filter-label input[type="radio"] {
+    display: none;
+}
+
+.filter-label input[type="radio"]:checked + span {
+    color: var(--primary-light);
+    font-weight: 600;
+}
+
+.search-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+}
+
+.search-results-main {
+    min-width: 0; /* Prevent overflow */
+}
+
+.results-section {
+    margin-bottom: 3rem;
+}
+
+.results-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--light);
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--dark-3);
+}
+
+.users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.user-search-card {
+    background-color: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.user-card-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    color: var(--light);
+}
+
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-default {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-info h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.username {
+    margin: 0 0 0.5rem 0;
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+.mutual-friends {
+    margin: 0.25rem 0;
+    font-size: 0.85rem;
+    color: var(--primary-light);
+}
+
+.user-points {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.user-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.journal-search-card,
+.vision-search-card,
+.post-search-card {
+    background-color: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.journal-header,
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.author-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+}
+
+.author-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.journal-author,
+.post-author {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--light);
+    font-weight: 600;
+}
+
+.journal-date {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.journal-search-card h3,
+.post-search-card h3 {
+    margin: 0 0 0.75rem 0;
+}
+
+.journal-search-card h3 a {
+    color: var(--light);
+    text-decoration: none;
+}
+
+.journal-search-card h3 a:hover {
+    color: var(--primary-light);
+}
+
+.journal-excerpt {
+    color: var(--light);
+    opacity: 0.8;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.journal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mood-tag {
+    padding: 0.25rem 0.75rem;
+    background-color: var(--dark-3);
+    border-radius: 1rem;
+    font-size: 0.8rem;
+}
+
+.points-earned {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.visions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.vision-cover {
+    width: 100%;
+    height: 150px;
+    border-radius: 0.75rem 0.75rem 0 0;
+    overflow: hidden;
+}
+
+.vision-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vision-info {
+    padding: 1rem 0 0;
+}
+
+.vision-description {
+    color: var(--light);
+    opacity: 0.8;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.vision-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+}
+
+.vision-author {
+    opacity: 0.7;
+}
+
+.post-content h3 {
+    margin: 0 0 0.75rem 0;
+}
+
+.post-content p {
+    color: var(--light);
+    opacity: 0.8;
+    line-height: 1.6;
+}
+
+.post-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--dark-3);
+}
+
+.post-stats {
+    display: flex;
+    gap: 1rem;
+    color: var(--light);
+    opacity: 0.7;
+}
+
+.search-sidebar {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+}
+
+.sidebar-section {
+    background-color: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--light);
+}
+
+.suggestions-list {
+    margin-bottom: 1rem;
+}
+
+.suggestion-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+}
+
+.suggestion-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--light);
+    flex: 1;
+}
+
+.suggestion-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.suggestion-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.suggestion-info strong {
+    display: block;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.suggestion-info small {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.suggestion-action .btn-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+.tips-list {
+    list-style: none;
+    padding: 0;
+}
+
+.tips-list li {
+    padding: 0.5rem 0;
+    color: var(--light);
+    opacity: 0.8;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--dark-3);
+}
+
+.tips-list li:last-child {
+    border-bottom: none;
+}
+
+.no-results,
+.search-instructions {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.no-results i {
+    font-size: 3rem;
+    color: var(--primary-light);
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.no-results h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--light);
+}
+
+.no-results p {
+    color: var(--light);
+    opacity: 0.7;
+}
+
+.search-instructions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.instruction-card {
+    background-color: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.instruction-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.instruction-card i {
+    font-size: 2.5rem;
+    color: var(--primary-light);
+    margin-bottom: 1rem;
+}
+
+.instruction-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--light);
+}
+
+.instruction-card p {
+    color: var(--light);
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.btn-block {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .search-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-sidebar {
+        position: static;
+        order: -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-input-group {
+        flex-direction: column;
+    }
+    
+    .users-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .visions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-label {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

@@ -195,6 +195,38 @@
             color: var(--light);
             opacity: 0.7;
         }
+        .search-form-quick {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input-quick {
+            padding: 0.5rem 1rem 0.5rem 2rem;
+            border-radius: 2rem;
+            background-color: var(--dark-2);
+            border: 1px solid var(--dark-3);
+            color: var(--light);
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input-quick:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.3);
+            width: 300px;
+        }
+
+        .search-btn-quick {
+            position: absolute;
+            left: 0.5rem;
+            background: none;
+            border: none;
+            color: var(--light);
+            opacity: 0.7;
+            cursor: pointer;
+        }
         
         /* Dropdown Menu */
         .dropdown {
@@ -622,6 +654,7 @@
                 min-width: 100%;
             }
         }
+
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -644,8 +677,9 @@
             {% if user.is_authenticated %}
             <div class="nav-links">
                 <a href="{% url 'dashboard:dashboard' %}">Dashboard</a>
-                <a href="#">Feed</a>
-                <a href="#">Friends</a>
+                <a href="{% url 'social:feed' %}">Feed</a>
+                <a href="{% url 'accounts:friend_suggestions' %}">Friends</a>
+                <a href="{% url 'accounts:search' %}">Search</a>
             </div>
             {% endif %}
             

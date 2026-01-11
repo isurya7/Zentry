@@ -1,13 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Profile - Zentry{% endblock %}
+{% block title %}{{ title }} - Zentry{% endblock %}
 
 {% block content %}
 <style>
-    /* Profile-specific styles */
     .profile-container {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 2rem auto;
         padding: 0 1rem;
     }
@@ -18,13 +17,33 @@
         overflow: hidden;
         margin-bottom: 2rem;
         border: 1px solid var(--dark-3);
-        padding: 2rem;
+        position: relative;
+        min-height: 300px;
+    }
+    
+    .profile-cover {
+        height: 200px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .profile-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .profile-info {
+        padding: 0 2rem 2rem;
+        margin-top: -50px;
         display: flex;
-        align-items: center;
+        align-items: flex-end;
+        gap: 2rem;
+        position: relative;
     }
     
     .avatar-section {
-        margin-right: 2rem;
         flex-shrink: 0;
     }
     
@@ -32,9 +51,37 @@
         width: 150px;
         height: 150px;
         border-radius: 50%;
-        object-fit: cover;
-        border: 4px solid var(--primary);
+        border: 4px solid var(--dark-2);
         background-color: var(--dark-3);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .avatar-edit {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: var(--primary);
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .profile-avatar:hover .avatar-edit {
+        opacity: 1;
     }
     
     .default-avatar {
@@ -48,11 +95,12 @@
         font-size: 3.5rem;
         font-weight: bold;
         color: white;
-        border: 4px solid var(--primary);
+        border: 4px solid var(--dark-2);
     }
     
     .profile-details {
         flex: 1;
+        padding-bottom: 1rem;
     }
     
     .profile-details h1 {
@@ -82,16 +130,20 @@
         opacity: 0.8;
         margin-bottom: 1.5rem;
         line-height: 1.6;
-        padding: 1rem;
-        background-color: var(--dark-3);
-        border-radius: 0.5rem;
-        border-left: 3px solid var(--primary);
+        max-width: 600px;
     }
     
-    .stats {
+    .profile-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .profile-stats {
         display: flex;
         gap: 2rem;
         margin-top: 1.5rem;
+        flex-wrap: wrap;
     }
     
     .stat {
@@ -116,223 +168,206 @@
         margin-top: 0.3rem;
     }
     
+    .mutual-friends-section {
+        background-color: var(--dark-2);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .mutual-friends-avatars {
+        display: flex;
+    }
+    
+    .mutual-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-left: -8px;
+        border: 2px solid var(--dark-2);
+        background-color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+    }
+    
+    .mutual-avatar:first-child {
+        margin-left: 0;
+    }
+    
+    .mutual-avatar img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .mutual-text {
+        font-size: 0.9rem;
+        color: var(--light);
+        opacity: 0.8;
+    }
+    
     .profile-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .content-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .content-section {
         background-color: var(--dark-2);
         border-radius: 1rem;
         overflow: hidden;
         border: 1px solid var(--dark-3);
     }
     
-    .content-tabs {
-        display: flex;
-        border-bottom: 1px solid var(--dark-3);
-        padding: 0 1rem;
-        background-color: var(--dark-2);
-    }
-    
-    .tab-btn {
-        padding: 1rem 1.5rem;
-        background: none;
-        border: none;
-        color: var(--light);
-        cursor: pointer;
-        font-weight: 500;
-        position: relative;
-        opacity: 0.7;
-        transition: all 0.3s ease;
-    }
-    
-    .tab-btn:hover {
-        opacity: 1;
-        background-color: var(--dark-3);
-    }
-    
-    .tab-btn.active {
-        opacity: 1;
-        color: var(--primary-light);
-        background-color: var(--dark-3);
-    }
-    
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background-color: var(--primary-light);
-    }
-    
-    .tab-content {
-        padding: 2rem;
-        min-height: 400px;
-    }
-    
-    .tab-pane {
-        display: none;
-    }
-    
-    .tab-pane.active {
-        display: block;
-        animation: fadeIn 0.3s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    .tab-content h2 {
-        margin-bottom: 1.5rem;
-        font-size: 1.5rem;
-        color: var(--primary-light);
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid var(--dark-3);
-    }
-    
-    .task-list, .vision-grid, .friends-grid {
-        display: grid;
-        gap: 1rem;
-    }
-    
-    .task-item {
-        background-color: var(--dark-3);
-        padding: 1.2rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid var(--primary);
-        transition: all 0.3s ease;
-    }
-    
-    .task-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    
-    .task-item h3 {
-        margin-bottom: 0.5rem;
-        color: var(--light);
-    }
-    
-    .task-item p {
-        color: var(--light);
-        opacity: 0.8;
-        margin-bottom: 0.8rem;
-    }
-    
-    .task-status {
-        display: inline-block;
-        padding: 0.4rem 0.8rem;
-        border-radius: 1rem;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-    
-    .task-status.completed {
-        background-color: rgba(16, 185, 129, 0.2);
-        color: var(--success);
-        border: 1px solid var(--success);
-    }
-    
-    .task-status.pending {
-        background-color: rgba(245, 158, 11, 0.2);
-        color: var(--accent);
-        border: 1px solid var(--accent);
-    }
-    
-    .vision-grid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
-    
-    .vision-card {
-        background-color: var(--dark-3);
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        border: 1px solid var(--dark-3);
-        transition: all 0.3s ease;
-    }
-    
-    .vision-card:hover {
-        border-color: var(--primary-light);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    
-    .vision-card h3 {
-        margin-bottom: 0.8rem;
-        color: var(--primary-light);
-    }
-    
-    .vision-card p {
-        color: var(--light);
-        opacity: 0.8;
-        line-height: 1.5;
-    }
-    
-    .friends-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    }
-    
-    .friend-card {
-        background-color: var(--dark-3);
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        text-align: center;
-        border: 1px solid var(--dark-3);
-        transition: all 0.3s ease;
-    }
-    
-    .friend-card:hover {
-        border-color: var(--primary-light);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    
-    .friend-avatar {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.8rem;
-        font-weight: bold;
-        color: white;
-        margin: 0 auto 1rem;
-        border: 2px solid var(--primary-light);
-    }
-    
-    .friend-card h3 {
-        margin-bottom: 1rem;
-        color: var(--light);
-    }
-    
-    .pending-requests {
-        margin-bottom: 2rem;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid var(--dark-3);
-    }
-    
-    .pending-requests h3 {
-        margin-bottom: 1rem;
-        color: var(--primary-light);
-    }
-    
-    .friend-request {
-        background-color: var(--dark-3);
-        padding: 1.2rem;
-        border-radius: 0.5rem;
+    .section-header {
+        padding: 1.5rem 1.5rem 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1rem;
-        border-left: 4px solid var(--accent);
     }
     
-    .friend-request p {
+    .section-header h2 {
+        font-size: 1.3rem;
         color: var(--light);
-        margin: 0;
+    }
+    
+    .section-content {
+        padding: 0 1.5rem 1.5rem;
+    }
+    
+    .friends-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+    }
+    
+    .friend-card {
+        text-align: center;
+    }
+    
+    .friend-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin: 0 auto 0.5rem;
+        overflow: hidden;
+        background-color: var(--dark-3);
+    }
+    
+    .friend-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .friend-name {
+        font-size: 0.9rem;
+        color: var(--light);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .activity-list, .achievement-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .activity-item, .achievement-item {
+        padding: 1rem;
+        background-color: var(--dark-3);
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .activity-icon, .achievement-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    
+    .activity-content {
         flex: 1;
+    }
+    
+    .activity-title {
+        font-weight: 600;
+        color: var(--light);
+        margin-bottom: 0.25rem;
+    }
+    
+    .activity-time {
+        font-size: 0.85rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .activity-points {
+        color: var(--accent);
+        font-weight: 600;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: var(--light);
+        opacity: 0.7;
+    }
+    
+    .empty-state i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .friends-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .sidebar-section {
+        background-color: var(--dark-2);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        border: 1px solid var(--dark-3);
+    }
+    
+    .friend-request-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background-color: var(--dark-3);
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .friend-request-card:last-child {
+        margin-bottom: 0;
     }
     
     .request-actions {
@@ -340,498 +375,493 @@
         gap: 0.5rem;
     }
     
-    .btn-success {
-        background-color: var(--success);
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 0.3rem;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-success:hover {
-        background-color: #0d966c;
-        transform: translateY(-2px);
-    }
-    
-    .btn-danger {
-        background-color: var(--error);
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 0.3rem;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-danger:hover {
-        background-color: #dc2626;
-        transform: translateY(-2px);
-    }
-    
-    .btn-warning {
-        background-color: var(--accent);
-        color: white;
-    }
-    
-    .btn-warning:hover {
-        background-color: #d97706;
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        color: var(--light);
-        opacity: 0.7;
-    }
-    
-    .empty-state a {
-        color: var(--primary-light);
-        text-decoration: none;
-        font-weight: 600;
-    }
-    
-    .empty-state a:hover {
-        text-decoration: underline;
-    }
-    
-    .settings-form {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-    }
-    
-    .settings-form .form-group {
-        margin-bottom: 0;
-    }
-    
-    .settings-form .checkbox-group {
-        grid-column: span 2;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
-    
-    .settings-form .checkbox-group input {
-        width: 18px;
-        height: 18px;
-    }
-    
-    .account-actions {
-        grid-column: span 2;
-        padding-top: 2rem;
-        border-top: 1px solid var(--dark-3);
-        margin-top: 1rem;
-    }
-    
-    .account-actions h3 {
-        margin-bottom: 1rem;
-        color: var(--primary-light);
-    }
-    
-    .account-actions .btn {
-        margin-right: 1rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    /* Form field styling to match existing UI */
-    .settings-form input[type="text"],
-    .settings-form input[type="email"],
-    .settings-form textarea,
-    .settings-form input[type="file"] {
-        width: 100%;
-        padding: 0.8rem;
-        border-radius: 0.5rem;
-        background-color: var(--dark-3);
-        border: 1px solid var(--dark-3);
-        color: var(--light);
-        font-family: 'Inter', sans-serif;
-        transition: all 0.3s ease;
-    }
-    
-    .settings-form input[type="text"]:focus,
-    .settings-form input[type="email"]:focus,
-    .settings-form textarea:focus {
-        outline: none;
-        border-color: var(--primary-light);
-        box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.3);
-    }
-    
-    .settings-form textarea {
-        resize: vertical;
-        min-height: 100px;
-    }
-    
-    .settings-form label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: var(--light);
-    }
-    
-    /* Image preview functionality */
-    .image-preview {
-        margin-top: 0.8rem;
-        display: none;
-    }
-    
-    .image-preview img {
-        max-width: 150px;
-        max-height: 150px;
-        border-radius: 0.5rem;
-        border: 2px solid var(--dark-3);
-    }
-    
-    /* Error message styling */
-    .error-message {
-        color: var(--error);
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-    }
-    
-    /* Responsive design */
     @media (max-width: 768px) {
-        .profile-header {
-            flex-direction: column;
-            text-align: center;
-            padding: 1.5rem;
-        }
-        
-        .avatar-section {
-            margin-right: 0;
-            margin-bottom: 1.5rem;
-        }
-        
-        .stats {
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .content-tabs {
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-        
-        .settings-form {
+        .profile-content {
             grid-template-columns: 1fr;
         }
         
-        .settings-form .checkbox-group {
-            grid-column: span 1;
-        }
-        
-        .account-actions {
-            grid-column: span 1;
-        }
-        
-        .friend-request {
+        .profile-info {
             flex-direction: column;
-            gap: 1rem;
+            align-items: center;
             text-align: center;
+            padding: 0 1rem 2rem;
         }
         
-        .request-actions {
-            width: 100%;
+        .profile-stats {
             justify-content: center;
+        }
+        
+        .profile-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .friends-grid {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
         }
     }
 </style>
 
 <div class="profile-container">
+    <!-- Profile Header -->
     <div class="profile-header">
-        <div class="avatar-section">
-            {% if profile.pfp %}
-                <img src="{{ profile.pfp.url }}" alt="Profile picture" class="profile-avatar" id="avatar-preview">
-            {% else %}
-                <div class="default-avatar">{{ user.username|first|upper }}</div>
+        <div class="profile-cover">
+            {% if profile.cover_image %}
+            <img src="{{ profile.cover_image.url }}" alt="Cover image">
+            {% endif %}
+            {% if is_own_profile %}
+            <div style="position: absolute; top: 1rem; right: 1rem;">
+                <a href="#settings" class="btn btn-outline">
+                    <i class="fas fa-cog"></i> Edit Profile
+                </a>
+            </div>
             {% endif %}
         </div>
         
-        <div class="profile-details">
-            <h1>{{ user.first_name }} {{ user.last_name }}</h1>
-            <p class="username">@{{ user.username }}</p>
-            <p class="profession">{{ profile.profession|default:"No profession set" }}</p>
-            <p class="bio">{{ profile.bio|default:"No bio yet." }}</p>
+        <div class="profile-info">
+            <div class="avatar-section">
+                {% if profile.pfp %}
+                <div class="profile-avatar">
+                    <img src="{{ profile.pfp.url }}" alt="Profile picture">
+                    {% if is_own_profile %}
+                    <div class="avatar-edit" onclick="document.getElementById('id_pfp').click()">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="default-avatar">
+                    {{ viewed_user.username|first|upper }}
+                </div>
+                {% endif %}
+            </div>
             
-            <div class="stats">
-                <div class="stat">
-                    <span class="stat-value">{{ profile.total_points }}</span>
-                    <span class="stat-label">Points</span>
+            <div class="profile-details">
+                <h1>{{ viewed_user.get_full_name|default:viewed_user.username }}</h1>
+                <p class="username">@{{ viewed_user.username }}</p>
+                
+                {% if profile.profession %}
+                <p class="profession">{{ profile.profession }}</p>
+                {% endif %}
+                
+                {% if profile.bio %}
+                <p class="bio">{{ profile.bio }}</p>
+                {% endif %}
+                
+                <!-- Profile Actions -->
+                <div class="profile-actions">
+                    {% if is_own_profile %}
+                    <button class="btn btn-primary" onclick="showSettings()">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                    {% else %}
+                        {% if is_friend %}
+                        <form method="POST" action="{% url 'accounts:remove_friend' viewed_user.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline">
+                                <i class="fas fa-user-minus"></i> Remove Friend
+                            </button>
+                        </form>
+                        <a href="{% url 'messaging:start_conversation' viewed_user.id %}" class="btn btn-primary">
+                            <i class="fas fa-message"></i> Message
+                        </a>
+                        {% elif friend_request_sent %}
+                        <button class="btn btn-warning" disabled>
+                            <i class="fas fa-clock"></i> Friend Request Sent
+                        </button>
+                        {% elif friend_request_received %}
+                        <div class="btn-group">
+                            <form method="POST" action="{% url 'accounts:respond_friend_request' %}?user_id={{ viewed_user.id }}&action=accept" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check"></i> Accept
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'accounts:respond_friend_request' %}?user_id={{ viewed_user.id }}&action=reject" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <form method="POST" action="{% url 'accounts:send_friend_request' viewed_user.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-plus"></i> Add Friend
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        {% if not is_friend and not friend_request_sent %}
+                        <button class="btn btn-outline" onclick="reportUser({{ viewed_user.id }})">
+                            <i class="fas fa-flag"></i> Report
+                        </button>
+                        {% endif %}
+                    {% endif %}
                 </div>
-                <div class="stat">
-                    <span class="stat-value">{{ friends_count }}</span>
-                    <span class="stat-label">Friends</span>
+                
+                <!-- Profile Stats -->
+                <div class="profile-stats">
+                    {% if can_see_points %}
+                    <div class="stat">
+                        <span class="stat-value">{{ profile.total_points }}</span>
+                        <span class="stat-label">Points</span>
+                    </div>
+                    {% else %}
+                    <div class="stat">
+                        <span class="stat-value">???</span>
+                        <span class="stat-label">Points</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="stat">
+                        <span class="stat-value">{{ friends_count }}</span>
+                        <span class="stat-label">Friends</span>
+                    </div>
+                    
+                    {% if is_own_profile %}
+                    <div class="stat">
+                        <span class="stat-value">{{ profile.daily_tasks_count }}/{{ profile.max_daily_tasks }}</span>
+                        <span class="stat-label">Tasks Today</span>
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="stat">
-                    <span class="stat-value">{{ tasks_count }}</span>
-                    <span class="stat-label">Tasks</span>
+                
+                <!-- Mutual Friends -->
+                {% if not is_own_profile and mutual_count > 0 %}
+                <div class="mutual-friends-section">
+                    <div class="mutual-friends-avatars">
+                        {% for mutual in mutual_friends|slice:":5" %}
+                        <div class="mutual-avatar" title="{{ mutual.user.username }}">
+                            {% if mutual.pfp %}
+                            <img src="{{ mutual.pfp.url }}" alt="{{ mutual.user.username }}">
+                            {% else %}
+                            {{ mutual.user.username|first|upper }}
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mutual-text">
+                        {{ mutual_count }} mutual friend{{ mutual_count|pluralize }}
+                    </div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
     
+    <!-- Profile Content -->
     <div class="profile-content">
-        <div class="content-tabs">
-            <button class="tab-btn active" data-tab="tasks">Tasks</button>
-            <button class="tab-btn" data-tab="visions">Visions</button>
-            <button class="tab-btn" data-tab="friends">Friends</button>
-            <button class="tab-btn" data-tab="settings">Settings</button>
-        </div>
-        
-        <div class="tab-content">
-            <div id="tasks-tab" class="tab-pane active">
-                <h2>Recent Tasks</h2>
-                {% if tasks %}
-                    <ul class="task-list">
-                        {% for task in tasks %}
-                        <li class="task-item">
-                            <h3>{{ task.title }}</h3>
-                            <p>{{ task.description }}</p>
-                            <span class="task-status {{ task.status }}">{{ task.status }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="empty-state">No tasks yet. <a href="#">Create your first task</a></p>
-                {% endif %}
-            </div>
-            
-            <div id="visions-tab" class="tab-pane">
-                <h2>Your Visions</h2>
-                {% if visions %}
-                    <div class="vision-grid">
-                        {% for vision in visions %}
-                        <div class="vision-card">
-                            <h3>{{ vision.title }}</h3>
-                            <p>{{ vision.description }}</p>
+        <!-- Main Content -->
+        <div class="content-main">
+            <!-- Journals Section -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-book"></i> Recent Journals</h2>
+                    {% if is_own_profile %}
+                    <a href="{% url 'journal:create_journal' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> New Journal
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="section-content">
+                    {% if journals %}
+                    <div class="activity-list">
+                        {% for journal in journals %}
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">
+                                    <a href="{% url 'journal:view_journal' journal.id %}">{{ journal.title }}</a>
+                                </div>
+                                <div class="activity-time">
+                                    {{ journal.created_at|date:"M d, Y" }} • {{ journal.get_mood_display }}
+                                </div>
+                            </div>
+                            <div class="activity-points">
+                                +5 points
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
-                {% else %}
-                    <p class="empty-state">No visions yet. <a href="#">Create your first vision</a></p>
-                {% endif %}
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-book"></i>
+                        <p>{% if is_own_profile %}No journals yet. Start writing!{% else %}No public journals{% endif %}</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
             
-            <div id="friends-tab" class="tab-pane">
-                <h2>Friends</h2>
-                
-                {% if pending_requests %}
-                <div class="pending-requests">
-                    <h3>Pending Friend Requests</h3>
+            <!-- Visions Section -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-bullseye"></i> Vision Boards</h2>
+                    {% if is_own_profile %}
+                    <a href="{% url 'visionboard:create_vision' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> New Vision
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="section-content">
+                    {% if visions %}
+                    <div class="activity-list">
+                        {% for vision in visions %}
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">
+                                    <a href="{% url 'visionboard:view_vision' vision.id %}">{{ vision.title }}</a>
+                                </div>
+                                <div class="activity-time">
+                                    {{ vision.created_at|date:"M d, Y" }} • {{ vision.get_status_display }}
+                                </div>
+                            </div>
+                            {% if vision.status == 'achieved' %}
+                            <div class="activity-points">
+                                +{{ vision.points }} points
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-bullseye"></i>
+                        <p>{% if is_own_profile %}No vision boards yet{% else %}No public vision boards{% endif %}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Friends Section -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Friends ({{ friends_count }})</h2>
+                    {% if is_own_profile %}
+                    <a href="{% url 'accounts:friend_suggestions' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-user-plus"></i> Find Friends
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="section-content">
+                    {% if friends %}
+                    <div class="friends-grid">
+                        {% for friend in friends %}
+                        <div class="friend-card">
+                            <a href="{% url 'accounts:public_profile' friend.user.username %}">
+                                <div class="friend-avatar">
+                                    {% if friend.pfp %}
+                                    <img src="{{ friend.pfp.url }}" alt="{{ friend.user.username }}">
+                                    {% else %}
+                                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), var(--primary-light)); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                        {{ friend.user.username|first|upper }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="friend-name">
+                                    {{ friend.user.username }}
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if friends_count > 9 %}
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <a href="#" class="btn btn-outline btn-sm">View All Friends</a>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>{% if is_own_profile %}No friends yet. Add some!{% else %}No friends to show{% endif %}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="friends-sidebar">
+            <!-- Settings (Own Profile Only) -->
+            {% if is_own_profile and form %}
+            <div class="sidebar-section" id="settings-section" style="display: none;">
+                <h3 style="margin-bottom: 1rem;">Profile Settings</h3>
+                <form method="post" enctype="multipart/form-data" id="settings-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>First Name</label>
+                        <input type="text" name="first_name" value="{{ viewed_user.first_name }}" class="form-control">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Last Name</label>
+                        <input type="text" name="last_name" value="{{ viewed_user.last_name }}" class="form-control">
+                    </div>
+                    
+                    {% for field in form %}
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <small style="color: var(--light); opacity: 0.7;">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div style="color: var(--error); font-size: 0.85rem;">
+                            {{ field.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="show_points" name="show_points_publicly" {% if profile.show_points_publicly %}checked{% endif %}>
+                            <label for="show_points">Show points publicly</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="show_journals" name="show_journals_publicly" {% if profile.show_journals_publicly %}checked{% endif %}>
+                            <label for="show_journals">Show journals publicly</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="show_visions" name="show_visions_publicly" {% if profile.show_visions_publicly %}checked{% endif %}>
+                            <label for="show_visions">Show vision boards publicly</label>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="button" class="btn btn-outline" onclick="hideSettings()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+            
+            <!-- Pending Friend Requests (Own Profile Only) -->
+            {% if is_own_profile and pending_requests %}
+            <div class="sidebar-section">
+                <h3>Friend Requests</h3>
+                <div class="section-content">
                     {% for request in pending_requests %}
-                    <div class="friend-request">
-                        <p>{{ request.from_user.user.username }} wants to be your friend</p>
+                    <div class="friend-request-card">
+                        <div style="flex: 1;">
+                            <strong>{{ request.from_user.user.username }}</strong>
+                            <div style="font-size: 0.85rem; opacity: 0.7;">
+                                {{ request.created_at|timesince }} ago
+                            </div>
+                        </div>
                         <div class="request-actions">
-                            <button class="btn btn-success accept-request" data-request-id="{{ request.id }}">Accept</button>
-                            <button class="btn btn-danger reject-request" data-request-id="{{ request.id }}">Reject</button>
+                            <form method="POST" action="{% url 'accounts:respond_friend_request' request.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="accept">
+                                <button type="submit" class="btn btn-sm btn-success" title="Accept">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'accounts:respond_friend_request' request.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" class="btn btn-sm btn-outline" title="Reject">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-                {% endif %}
-                
-                {% if friends %}
-                    <div class="friends-grid">
-                        {% for friend in friends %}
-                        <div class="friend-card">
-                            <div class="friend-avatar">
-                                {% if friend.pfp %}
-                                    <img src="{{ friend.pfp.url }}" alt="{{ friend.user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                                {% else %}
-                                    {{ friend.user.username|first|upper }}
-                                {% endif %}
-                            </div>
-                            <h3>{{ friend.user.username }}</h3>
-                            <button class="btn btn-outline">Message</button>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="empty-state">No friends yet. <a href="#">Find friends</a></p>
-                {% endif %}
             </div>
+            {% endif %}
             
-            <div id="settings-tab" class="tab-pane">
-                <h2>Profile Settings</h2>
-                <form method="post" enctype="multipart/form-data" class="settings-form">
-                    {% csrf_token %}
-                    
-                    <!-- User model fields -->
-                    <div class="form-group">
-                        <label for="id_first_name">First Name</label>
-                        <input type="text" id="id_first_name" name="first_name" class="form-control" 
-                               value="{{ user.first_name }}">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="id_last_name">Last Name</label>
-                        <input type="text" id="id_last_name" name="last_name" class="form-control" 
-                               value="{{ user.last_name }}">
-                    </div>
-                    
-                    <!-- UserProfile model fields from the form -->
-                    <div class="form-group">
-                        <label for="id_profession">Profession</label>
-                        {{ form.profession }}
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="id_bio">Bio</label>
-                        {{ form.bio }}
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="id_pfp">Profile Picture</label>
-                        {{ form.pfp }}
-                        <div class="image-preview" id="avatar-preview-container">
-                            {% if profile.pfp %}
-                                <img src="{{ profile.pfp.url }}" alt="Current profile picture" id="avatar-preview-img">
+            <!-- Achievements -->
+            {% if achievements %}
+            <div class="sidebar-section">
+                <h3>Recent Achievements</h3>
+                <div class="achievement-list">
+                    {% for achievement in achievements %}
+                    <div class="achievement-item">
+                        <div class="achievement-icon">
+                            {% if achievement.achievement_type == 'task' %}
+                            <i class="fas fa-check-circle"></i>
+                            {% elif achievement.achievement_type == 'journal' %}
+                            <i class="fas fa-book"></i>
+                            {% elif achievement.achievement_type == 'vision' %}
+                            <i class="fas fa-trophy"></i>
+                            {% elif achievement.achievement_type == 'points' %}
+                            <i class="fas fa-star"></i>
                             {% else %}
-                                <img src="" alt="Profile picture preview" id="avatar-preview-img" style="display: none;">
+                            <i class="fas fa-award"></i>
                             {% endif %}
                         </div>
+                        <div>
+                            <strong>{{ achievement.title }}</strong>
+                            <div style="font-size: 0.85rem; opacity: 0.7;">
+                                {{ achievement.created_at|timesince }} ago
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="id_cover_image">Cover Image</label>
-                        {{ form.cover_image }}
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="id_gmail_email">Gmail Email</label>
-                        {{ form.gmail_email }}
-                    </div>
-                    
-                    <div class="checkbox-group">
-                        {{ form.show_vision_publicly }}
-                        <label for="id_show_vision_publicly">Show visions publicly</label>
-                    </div>
-                    
-                    <div class="checkbox-group">
-                        {{ form.show_task_publicly }}
-                        <label for="id_show_task_publicly">Show tasks publicly</label>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary" style="grid-column: span 2;">Save Changes</button>
-                </form>
-                
-                <div class="account-actions">
-                    <h3>Account Actions</h3>
-                    <a href="{% url 'accounts:deactivate_account' %}" class="btn btn-warning">Deactivate Account</a>
-                    <a href="{% url 'accounts:delete_account' %}" class="btn btn-danger">Delete Account</a>
+                    {% endfor %}
                 </div>
             </div>
+            {% endif %}
+            
+            <!-- Subscription Status -->
+            {% if is_own_profile %}
+            <div class="sidebar-section">
+                <h3>Subscription</h3>
+                <div style="text-align: center;">
+                    <div style="font-size: 1.2rem; color: var(--accent); margin-bottom: 0.5rem;">
+                        {{ profile.subscription_type|title }}
+                    </div>
+                    <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem;">
+                        {% if profile.subscription_type == 'free' %}
+                        {{ profile.max_daily_tasks }} daily tasks limit
+                        {% else %}
+                        Unlimited tasks
+                        {% endif %}
+                    </div>
+                    {% if profile.subscription_type == 'free' %}
+                    <a href="#" class="btn btn-primary btn-sm">Upgrade Plan</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Tab functionality
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabPanes = document.querySelectorAll('.tab-pane');
-        
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Remove active class from all buttons and panes
-                tabBtns.forEach(b => b.classList.remove('active'));
-                tabPanes.forEach(p => p.classList.remove('active'));
-                
-                // Add active class to clicked button
-                btn.classList.add('active');
-                
-                // Show corresponding pane
-                const tabId = btn.getAttribute('data-tab');
-                document.getElementById(`${tabId}-tab`).classList.add('active');
+function showSettings() {
+    document.getElementById('settings-section').style.display = 'block';
+    document.getElementById('settings-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideSettings() {
+    document.getElementById('settings-section').style.display = 'none';
+}
+
+function reportUser(userId) {
+    if (confirm('Report this user?')) {
+        window.location.href = "{% url 'accounts:report_user' 0 %}".replace('0', userId);
+    }
+}
+
+// Auto-submit forms when checkboxes change
+document.addEventListener('DOMContentLoaded', function() {
+    const settingsForm = document.getElementById('settings-form');
+    if (settingsForm) {
+        const checkboxes = settingsForm.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                settingsForm.submit();
             });
         });
-        
-        // Image preview functionality
-        const pfpInput = document.getElementById('{{ form.pfp.id_for_label }}');
-        const avatarPreview = document.getElementById('avatar-preview-img');
-        const avatarPreviewContainer = document.getElementById('avatar-preview-container');
-        
-        if (pfpInput && avatarPreview) {
-            // Show current avatar if exists
-            if ('{{ profile.pfp }}') {
-                const currentAvatar = document.querySelector('.profile-avatar');
-                if (currentAvatar && currentAvatar.src) {
-                    avatarPreview.src = currentAvatar.src;
-                    avatarPreviewContainer.style.display = 'block';
-                }
-            }
-            
-            pfpInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        avatarPreview.src = e.target.result;
-                        avatarPreviewContainer.style.display = 'block';
-                    }
-                    
-                    reader.readAsDataURL(this.files[0]);
-                }
-            });
-        }
-        
-        // Friend request handling
-        document.querySelectorAll('.accept-request').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const requestId = this.getAttribute('data-request-id');
-                respondToFriendRequest(requestId, 'accept');
-            });
-        });
-        
-        document.querySelectorAll('.reject-request').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const requestId = this.getAttribute('data-request-id');
-                respondToFriendRequest(requestId, 'reject');
-            });
-        });
-        
-        function respondToFriendRequest(requestId, action) {
-            fetch(`/accounts/friend-request/respond/${requestId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: `action=${action}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred');
-            });
-        }
-        
-        // Helper function to get CSRF token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-    });
+    }
+});
 </script>
 {% endblock %}

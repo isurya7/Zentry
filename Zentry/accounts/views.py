@@ -8,6 +8,12 @@ from django.db import IntegrityError
 from .forms import SignUpForm, SignInForm, UserProfileForm, PasswordConfirmationForm, CombinedProfileForm
 from .models import UserProfile, FriendRequest
 from django.contrib.auth.models import User
+from django.db.models import Q, Count
+from journal.models import JournalEntry
+from tasks.models import DailyTask
+from visionboard.models import VisionBoard
+from social.models import AchievementPost
+from notifications.models import Notification
 
 def signup_view(request):
     if request.user.is_authenticated:
@@ -85,51 +91,155 @@ def logout_view(request):
     return redirect('accounts:signin')
 
 @login_required
-def profile_view(request):
-    try:
-        profile = request.user.userprofile
-    except UserProfile.DoesNotExist:
-        profile = UserProfile.objects.create(user=request.user)
-    
-    if request.method == 'POST':
-        # Handle User model updates
-        if 'first_name' in request.POST:
-            request.user.first_name = request.POST['first_name']
-        if 'last_name' in request.POST:
-            request.user.last_name = request.POST['last_name']
-        request.user.save()
+def profile_view(request, username=None):
+    """View profile - can be own or other user's"""
+    if username:
+        # Viewing another user's profile
+        user = get_object_or_404(User, username=username)
+        profile = get_object_or_404(UserProfile, user=user)
         
-        # Handle UserProfile updates
-        form = UserProfileForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully!')
+        # Check if blocked
+        if profile in request.user.userprofile.blocked_users.all():
+            messages.error(request, "You have blocked this user.")
+            return redirect('dashboard:dashboard')
+        
+        # Check privacy settings
+        can_view_profile = (
+            profile.show_points_publicly or 
+            profile.user in request.user.userprofile.friends.all()
+        )
+        
+        if not can_view_profile:
+            messages.error(request, "This profile is private.")
             return redirect('accounts:profile')
-        else:
-            messages.error(request, 'Please correct the errors below.')
+        
+        # Calculate mutual friends
+        mutual_friends = []
+        if request.user != user:
+            my_friends = set(request.user.userprofile.friends.all())
+            their_friends = set(profile.friends.all())
+            mutual_profiles = my_friends.intersection(their_friends)
+            mutual_friends = list(mutual_profiles)
+        
+        # Get shared content
+        shared_journals = []
+        shared_visions = []
+        
+        if profile.show_journals_publicly or request.user.userprofile in profile.friends.all():
+            shared_journals = JournalEntry.objects.filter(
+                user=user,
+                is_public=True
+            ).order_by('-created_at')[:10]
+        
+        if profile.show_visions_publicly or request.user.userprofile in profile.friends.all():
+            shared_visions = VisionBoard.objects.filter(
+                user=user,
+                is_public=True
+            ).order_by('-created_at')[:10]
+        
+        # Get recent achievements
+        recent_achievements = AchievementPost.objects.filter(
+            user=user,
+            is_public=True
+        ).order_by('-created_at')[:5]
+        
+        # Check friendship status
+        is_friend = profile in request.user.userprofile.friends.all()
+        friend_request_sent = FriendRequest.objects.filter(
+            from_user=request.user.userprofile,
+            to_user=profile
+        ).exists()
+        friend_request_received = FriendRequest.objects.filter(
+            from_user=profile,
+            to_user=request.user.userprofile
+        ).exists()
+        
+        # Get form for settings (only if viewing own profile)
+        form = None
+        
+        context = {
+            'viewed_user': user,
+            'profile': profile,
+            'is_own_profile': False,
+            'is_friend': is_friend,
+            'friend_request_sent': friend_request_sent,
+            'friend_request_received': friend_request_received,
+            'mutual_friends': mutual_friends,
+            'mutual_count': len(mutual_friends),
+            'can_see_points': profile.show_points_publicly or is_friend,
+            'journals': shared_journals,
+            'visions': shared_visions,
+            'achievements': recent_achievements,
+            'friends': profile.friends.all()[:9],  # Show first 9
+            'friends_count': profile.friends.count(),
+            'form': form,  # No form for other users
+            'pending_requests': None,  # Only show own pending requests
+            'title': f"{user.get_full_name() or user.username}'s Profile"
+        }
+        
     else:
-        form = UserProfileForm(instance=profile)
+        # Viewing own profile
+        try:
+            profile = request.user.userprofile
+        except UserProfile.DoesNotExist:
+            profile = UserProfile.objects.create(user=request.user)
+        
+        if request.method == 'POST':
+            # Handle User model updates
+            if 'first_name' in request.POST:
+                request.user.first_name = request.POST['first_name']
+            if 'last_name' in request.POST:
+                request.user.last_name = request.POST['last_name']
+            request.user.save()
+            
+            # Handle UserProfile updates
+            form = UserProfileForm(request.POST, request.FILES, instance=profile)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('accounts:profile')
+            else:
+                messages.error(request, 'Please correct the errors below.')
+        else:
+            form = UserProfileForm(instance=profile)
+        
+        # Get counts for the profile page
+        friends_count = profile.friends.count()
+        
+        # Get user's content
+        tasks_count = DailyTask.objects.filter(creator=request.user).count()
+        tasks = DailyTask.objects.filter(creator=request.user).order_by('-date')[:5]
+        visions = VisionBoard.objects.filter(user=request.user).order_by('-created_at')[:5]
+        journals = JournalEntry.objects.filter(user=request.user).order_by('-created_at')[:5]
+        achievements = AchievementPost.objects.filter(user=request.user).order_by('-created_at')[:5]
+        friends = profile.friends.all()[:9]
+        
+        # Get pending friend requests
+        pending_requests = FriendRequest.objects.filter(to_user=profile, status='pending')
+        
+        context = {
+            'viewed_user': request.user,
+            'profile': profile,
+            'is_own_profile': True,
+            'is_friend': False,  # Can't be friend with yourself
+            'friend_request_sent': False,
+            'friend_request_received': False,
+            'mutual_friends': [],
+            'mutual_count': 0,
+            'can_see_points': True,  # Always see own points
+            'journals': journals,
+            'visions': visions,
+            'achievements': achievements,
+            'tasks': tasks,
+            'tasks_count': tasks_count,
+            'friends': friends,
+            'friends_count': friends_count,
+            'form': form,
+            'pending_requests': pending_requests,
+            'title': 'My Profile'
+        }
     
-    # Get counts for the profile page
-    friends_count = profile.friends.count()
-    tasks_count = 0  
-    tasks = []
-    visions = []
-    friends = profile.friends.all()
-    
-    # Get pending friend requests
-    pending_requests = FriendRequest.objects.filter(to_user=profile, status='pending')
-    
-    return render(request, 'accounts/profile.html', {
-        'form': form, 
-        'profile': profile,
-        'friends_count': friends_count,
-        'tasks_count': tasks_count,
-        'tasks': tasks,
-        'visions': visions,
-        'friends': friends,
-        'pending_requests': pending_requests
-    })
+    return render(request, 'accounts/profile.html', context)
 
 @login_required
 def send_friend_request(request, user_id):
@@ -412,3 +522,199 @@ def delete_account(request):
         form = PasswordConfirmationForm(request.user)
     
     return render(request, 'accounts/delete_account.html', {'form': form})
+
+@login_required
+def global_search(request):
+    """Integrated search system"""
+    query = request.GET.get('q', '').strip()
+    search_type = request.GET.get('type', 'all')
+    
+    results = {
+        'users': [],
+        'journals': [],
+        'visions': [],
+        'posts': [],
+    }
+    
+    if query:
+        current_profile = request.user.userprofile
+        
+        # Search Users (always available)
+        if search_type in ['all', 'users']:
+            user_results = UserProfile.objects.filter(
+                Q(user__username__icontains=query) |
+                Q(user__first_name__icontains=query) |
+                Q(user__last_name__icontains=query),
+                is_deactivated=False
+            ).exclude(user=request.user).select_related('user')
+            
+            for profile in user_results:
+                # Check friendship status
+                is_friend = profile in current_profile.friends.all()
+                friend_request_sent = FriendRequest.objects.filter(
+                    from_user=current_profile,
+                    to_user=profile
+                ).exists()
+                friend_request_received = FriendRequest.objects.filter(
+                    from_user=profile,
+                    to_user=current_profile
+                ).exists()
+                
+                # Calculate mutual friends
+                mutual_friends = 0
+                if not is_friend:
+                    my_friends = set(current_profile.friends.all())
+                    their_friends = set(profile.friends.all())
+                    mutual_friends = len(my_friends.intersection(their_friends))
+                
+                results['users'].append({
+                    'profile': profile,
+                    'is_friend': is_friend,
+                    'friend_request_sent': friend_request_sent,
+                    'friend_request_received': friend_request_received,
+                    'mutual_friends': mutual_friends,
+                    'can_see_points': profile.show_points_publicly or is_friend,
+                })
+        
+        # Search Public Journals
+        if search_type in ['all', 'journals']:
+            journals = JournalEntry.objects.filter(
+                Q(title__icontains=query) | 
+                Q(content__icontains=query) |
+                Q(tags__icontains=query),
+                is_public=True
+            ).select_related('user').order_by('-created_at')[:20]
+            
+            for journal in journals:
+                results['journals'].append(journal)
+        
+        # Search Public Vision Boards
+        if search_type in ['all', 'visions']:
+            visions = VisionBoard.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query),
+                is_public=True
+            ).select_related('user').order_by('-created_at')[:20]
+            
+            for vision in visions:
+                results['visions'].append(vision)
+        
+        # Search Public Posts
+        if search_type in ['all', 'posts']:
+            posts = AchievementPost.objects.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query),
+                is_public=True
+            ).select_related('user').order_by('-created_at')[:20]
+            
+            for post in posts:
+                results['posts'].append(post)
+    
+    # Get friend suggestions
+    friend_suggestions = get_friend_suggestions(request.user)
+    
+    context = {
+        'results': results,
+        'query': query,
+        'search_type': search_type,
+        'friend_suggestions': friend_suggestions,
+        'title': f'Search: {query}' if query else 'Search'
+    }
+    
+    return render(request, 'accounts/search_results.html', context)
+
+
+def get_friend_suggestions(user, limit=5):
+    """Get friend suggestions based on mutual friends"""
+    profile = user.userprofile
+    
+    # Get users who are not friends, not blocked, and not yourself
+    exclude_users = list(profile.friends.all()) + [profile]
+    
+    # Find users with mutual friends
+    suggestions = []
+    
+    for friend in profile.friends.all():
+        for friend_of_friend in friend.friends.all():
+            if (friend_of_friend not in exclude_users and 
+                friend_of_friend not in suggestions):
+                
+                # Calculate mutual friends count
+                my_friends = set(profile.friends.all())
+                their_friends = set(friend_of_friend.friends.all())
+                mutual_count = len(my_friends.intersection(their_friends))
+                
+                # Check if already requested
+                request_sent = FriendRequest.objects.filter(
+                    from_user=profile,
+                    to_user=friend_of_friend
+                ).exists()
+                
+                request_received = FriendRequest.objects.filter(
+                    from_user=friend_of_friend,
+                    to_user=profile
+                ).exists()
+                
+                suggestions.append({
+                    'profile': friend_of_friend,
+                    'mutual_friends': mutual_count,
+                    'request_sent': request_sent,
+                    'request_received': request_received,
+                })
+    
+    # Sort by mutual friends count
+    suggestions.sort(key=lambda x: x['mutual_friends'], reverse=True)
+    
+    return suggestions[:limit]
+
+
+@login_required
+def friend_suggestions_view(request):
+    """Page showing all friend suggestions"""
+    suggestions = get_friend_suggestions(request.user, limit=20)
+    
+    return render(request, 'accounts/friend_suggestions.html', {
+        'suggestions': suggestions,
+        'title': 'Friend Suggestions'
+    })
+
+def public_profile_view(request, username):
+    """Public profile view for other users"""
+    user = get_object_or_404(User, username=username)
+    profile = get_object_or_404(UserProfile, user=user)
+    
+    # Check if user is blocked
+    if profile in request.user.userprofile.blocked_users.all():
+        messages.error(request, "You have blocked this user.")
+        return redirect('dashboard:dashboard')
+    
+    # Get public content
+    public_journals = []
+    if profile.show_journals_publicly:
+        public_journals = JournalEntry.objects.filter(
+            user=user,
+            is_public=True
+        ).order_by('-created_at')[:5]
+    
+    public_visions = []
+    if profile.show_visions_publicly:
+        public_visions = VisionBoard.objects.filter(
+            user=user,
+            is_public=True
+        ).order_by('-created_at')[:5]
+    
+    public_achievements = AchievementPost.objects.filter(
+        user=user,
+        is_public=True
+    ).order_by('-created_at')[:5]
+    
+    context = {
+        'viewed_user': user,
+        'profile': profile,
+        'journals': public_journals,
+        'visions': public_visions,
+        'achievements': public_achievements,
+        'title': f"{user.get_full_name() or user.username}'s Profile"
+    }
+    
+    return render(request, 'accounts/public_profile.html', context)

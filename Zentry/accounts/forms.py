@@ -107,13 +107,12 @@ class SignUpForm(UserCreationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['pfp', 'bio', 'profession', 'cover_image', 
-                 'show_vision_publicly', 'show_task_publicly', 'gmail_email']
-        widgets = {
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'profession': forms.TextInput(attrs={'class': 'form-control'}),
-            'gmail_email': forms.EmailInput(attrs={'class': 'form-control'}),
-        }
+        fields = [
+            'pfp', 'bio', 'profession', 'cover_image',
+            'show_points_publicly', 'show_journals_publicly', 
+            'show_visions_publicly', 'show_task_publicly',
+            'gmail_email'
+        ]
 
 class CombinedProfileForm(forms.ModelForm):
     first_name = forms.CharField(

@@ -16,4 +16,7 @@ urlpatterns = [
     path('report-user/<int:user_id>/', views.report_user, name='report_user'),
     path('deactivate-account/', views.deactivate_account, name='deactivate_account'),
     path('delete-account/', views.delete_account, name='delete_account'),
+    path('search/', views.global_search, name='search'),
+    path('friend-suggestions/', views.friend_suggestions_view, name='friend_suggestions'),
+    path('profile/<str:username>/', views.public_profile_view, name='public_profile'),
 ]

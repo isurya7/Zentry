@@ -1,0 +1,314 @@
+<!-- accounts/templates/accounts/friend_suggestions.html -->
+{% extends 'base.html' %}
+
+{% block title %}Friend Suggestions | Zentry{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="suggestions-header">
+        <h1><i class="fas fa-user-plus"></i> Friend Suggestions</h1>
+        <p>People you may know based on mutual connections</p>
+    </div>
+    
+    {% if suggestions %}
+    <div class="suggestions-grid">
+        {% for suggestion in suggestions %}
+        <div class="suggestion-card-large">
+            <a href="{% url 'accounts:public_profile' suggestion.profile.user.username %}" class="suggestion-main-link">
+                <div class="suggestion-avatar-large">
+                    {% if suggestion.profile.pfp %}
+                    <img src="{{ suggestion.profile.pfp.url }}" alt="{{ suggestion.profile.user.username }}">
+                    {% else %}
+                    <div class="avatar-default-large">
+                        {{ suggestion.profile.user.username|first|upper }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="suggestion-info-large">
+                    <h3>{{ suggestion.profile.user.get_full_name|default:suggestion.profile.user.username }}</h3>
+                    <p class="username">@{{ suggestion.profile.user.username }}</p>
+                    
+                    {% if suggestion.mutual_friends > 0 %}
+                    <div class="mutual-friends-info">
+                        <i class="fas fa-user-friends"></i>
+                        <strong>{{ suggestion.mutual_friends }} mutual friend{{ suggestion.mutual_friends|pluralize }}</strong>
+                        {% if suggestion.mutual_friends <= 5 %}
+                        <div class="mutual-friends-list">
+                            {% for friend in request.user.userprofile.friends.all %}
+                                {% if friend in suggestion.profile.friends.all %}
+                                <span>{{ friend.user.username }}</span>
+                                {% if not forloop.last %}, {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="profile-stats">
+                        {% if suggestion.profile.show_points_publicly %}
+                        <span class="stat">
+                            <i class="fas fa-star"></i>
+                            {{ suggestion.profile.total_points }} points
+                        </span>
+                        {% endif %}
+                        <span class="stat">
+                            <i class="fas fa-users"></i>
+                            {{ suggestion.profile.friends.count }} friends
+                        </span>
+                    </div>
+                </div>
+            </a>
+            
+            <div class="suggestion-actions">
+                {% if suggestion.request_sent %}
+                <button class="btn btn-warning" disabled>
+                    <i class="fas fa-clock"></i> Request Sent
+                </button>
+                {% elif suggestion.request_received %}
+                <div class="btn-group">
+                    <a href="{% url 'accounts:respond_friend_request' %}?user_id={{ suggestion.profile.user.id }}&action=accept" 
+                       class="btn btn-success">
+                        Accept
+                    </a>
+                    <a href="{% url 'accounts:respond_friend_request' %}?user_id={{ suggestion.profile.user.id }}&action=reject" 
+                       class="btn btn-outline">
+                        Reject
+                    </a>
+                </div>
+                {% else %}
+                <form method="POST" action="{% url 'accounts:send_friend_request' suggestion.profile.user.id %}" class="suggestion-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Add Friend
+                    </button>
+                </form>
+                {% endif %}
+                
+                <button class="btn btn-outline" onclick="removeSuggestion({{ suggestion.profile.user.id }})">
+                    <i class="fas fa-times"></i> Remove
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-suggestions">
+        <i class="fas fa-user-friends"></i>
+        <h3>No suggestions available</h3>
+        <p>Try adding more friends to get better suggestions</p>
+        <a href="{% url 'accounts:search' %}" class="btn btn-primary">
+            <i class="fas fa-search"></i> Find Friends
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.suggestions-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.suggestions-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #e2e8f0, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.suggestions-header p {
+    color: var(--light);
+    opacity: 0.8;
+    font-size: 1.1rem;
+}
+
+.suggestions-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.suggestion-card-large {
+    background-color: var(--dark-2);
+    border: 1px solid var(--dark-3);
+    border-radius: 1rem;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    transition: all 0.3s ease;
+}
+
+.suggestion-card-large:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.suggestion-main-link {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    text-decoration: none;
+    color: var(--light);
+    flex: 1;
+}
+
+.suggestion-avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 3px solid var(--primary);
+}
+
+.suggestion-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-default-large {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 2.5rem;
+}
+
+.suggestion-info-large {
+    flex: 1;
+}
+
+.suggestion-info-large h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.5rem;
+}
+
+.username {
+    margin: 0 0 1rem 0;
+    opacity: 0.7;
+    font-size: 1rem;
+}
+
+.mutual-friends-info {
+    margin-bottom: 1rem;
+    color: var(--primary-light);
+}
+
+.mutual-friends-info i {
+    margin-right: 0.5rem;
+}
+
+.mutual-friends-list {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--light);
+    opacity: 0.8;
+}
+
+.suggestion-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 150px;
+}
+
+.suggestion-form {
+    margin: 0;
+}
+
+.btn-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.no-suggestions {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.no-suggestions i {
+    font-size: 4rem;
+    color: var(--primary-light);
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.no-suggestions h3 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: var(--light);
+}
+
+.no-suggestions p {
+    color: var(--light);
+    opacity: 0.7;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .suggestion-card-large {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+    
+    .suggestion-main-link {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-stats {
+        justify-content: center;
+    }
+    
+    .suggestion-actions {
+        width: 100%;
+    }
+    
+    .btn-group {
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        flex: 1;
+    }
+}
+</style>
+
+<script>
+function removeSuggestion(userId) {
+    if (confirm('Remove this suggestion?')) {
+        // You can implement AJAX to remove suggestion
+        // For now, just reload
+        location.reload();
+    }
+}
+</script>
+{% endblock %}
